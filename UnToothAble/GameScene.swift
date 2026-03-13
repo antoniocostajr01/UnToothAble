@@ -6,39 +6,54 @@
 //
 import SpriteKit
 
-final class GameScene: SKScene, SKPhysicsContactDelegate { //skphysics detecta colisao (chao e obstaculo)
+import SpriteKit
+
+class GameScene: SKScene, SKPhysicsContactDelegate {
     
     struct PhysicsCategory {
-        static let player: UInt32 = 1 << 0 //player eh 1 (0001. desloca o 1 0 casas
-        static let ground: UInt32 = 1 << 1 //chao eh 2 (0010). desloca o 1 1 casa
-        static let obstacle: UInt32 = 1 << 2 //obstaculo eh 4 (0100). desloca o 1 2 casas
-        //diferentes bitmasks para poder detectar colisao de game over
+        static let player: UInt32 = 1 << 0
+        static let ground: UInt32 = 1 << 1
+        static let obstacle: UInt32 = 1 << 2
     }
     
-    private let worldNode = SKNode() //o que vai mover
-    private let player = SKShapeNode(circleOfRadius: 25)
+    // NÓS DA CENA
+    private let worldNode = SKNode()
+    private let player = SKSpriteNode(imageNamed: "Tooth") // Usando o Sprite do dente
     
+    // A tua nova entidade independente para o Fundo
+    private let background = ScrollingBackground()
+    
+    // VARIÁVEIS DE ESTADO
     private var groundPieces: [SKSpriteNode] = []
     private var isGameOver = false
     private var canJump = true
     
     private let scenarioSpeed: CGFloat = 250
-    private var lastUpdateTime: TimeInterval = 0 //calcula o deltaT entre os frames p movimento ficar constante
+    private var lastUpdateTime: TimeInterval = 0
     
-    private var score: Int = 0 //1pt a cada 1seg que o player fica vivo (mudar para metros depois)
+    // PONTUAÇÃO
+    private var score: Int = 0
     private var scoreAccumulator: TimeInterval = 0
        
     private let scoreLabel = SKLabelNode(fontNamed: "Avenir-Heavy")
     private let bestScoreLabel = SKLabelNode(fontNamed: "Avenir-Heavy")
     
-    override func didMove(to view: SKView) { //inicio
+    // MARK: - Inicialização
+    override func didMove(to view: SKView) {
         size = view.bounds.size
+        backgroundColor = .clear // Fundo transparente para o ScrollingBackground aparecer
         
-        physicsWorld.gravity = CGVector(dx: 0, dy: -30) //puxa p baixo
+        physicsWorld.gravity = CGVector(dx: 0, dy: -30) // Gravidade a puxar para baixo
         physicsWorld.contactDelegate = self
         
+        // 1. Adiciona e configura o Background na cena principal (fica atrás de tudo)
+        addChild(background)
+        background.setup(in: size)
+        
+        // 2. Adiciona o worldNode (onde os obstáculos e o chão se vão mover)
         addChild(worldNode)
         
+        // 3. Configura os restantes elementos
         setupGround()
         setupPhysicsGround()
         setupPlayer()
@@ -47,62 +62,58 @@ final class GameScene: SKScene, SKPhysicsContactDelegate { //skphysics detecta c
         startSpawningObstacles()
     }
     
-    private func setupGround() { //
+    // MARK: - Configuração de Elementos
+    private func setupGround() {
         let groundHeight: CGFloat = 60
-        let groundY: CGFloat = 120 //altura y=120
+        let groundY: CGFloat = 120 // Altura base
         
-        for i in 0..<2 { //cria 2 blocos
-            let ground = SKSpriteNode(
-                color: .systemGreen,
-                size: CGSize(width: size.width, height: groundHeight)
-            )
+        for i in 0..<2 {
+            let ground = SKSpriteNode(color: .systemGreen, size: CGSize(width: size.width, height: groundHeight))
             
             ground.position = CGPoint(
-                x: size.width / 2 + CGFloat(i) * size.width, //conecta os blocos um do lado do outro
+                x: size.width / 2 + CGFloat(i) * size.width,
                 y: groundY
             )
             
             worldNode.addChild(ground)
-            groundPieces.append(ground)//guarda no array para usar depois
+            groundPieces.append(ground)
         }
     }
     
-    //se o chao estiver sempre se movendo, pode afetar o player com tremor, escorregar etc. entao se cria um invisivel
     private func setupPhysicsGround() {
         let groundHeight: CGFloat = 60
         let groundY: CGFloat = 120
         
-        let physicsGround = SKNode() //cria um chao invisivel na mesma linha do verde para o player cair em cima
+        let physicsGround = SKNode()
         physicsGround.position = CGPoint(x: size.width / 2, y: groundY)
-        physicsGround.physicsBody = SKPhysicsBody(
-            rectangleOf: CGSize(width: size.width * 2, height: groundHeight)
-        )
+        physicsGround.physicsBody = SKPhysicsBody(rectangleOf: CGSize(width: size.width * 2, height: groundHeight))
         physicsGround.physicsBody?.isDynamic = false
         physicsGround.physicsBody?.categoryBitMask = PhysicsCategory.ground
-        physicsGround.physicsBody?.contactTestBitMask = PhysicsCategory.player //player encosta nele
-        physicsGround.physicsBody?.collisionBitMask = PhysicsCategory.player //pode colidir com ele
+        physicsGround.physicsBody?.contactTestBitMask = PhysicsCategory.player
+        physicsGround.physicsBody?.collisionBitMask = PhysicsCategory.player
         
         addChild(physicsGround)
     }
     
     private func setupPlayer() {
-        player.fillColor = .systemBlue
-        player.strokeColor = .clear
+        // Redimensiona a imagem do dente
+        player.size = CGSize(width: 70, height: 70)
+        player.position = CGPoint(x: size.width * 0.25, y: 180)
         
-        player.position = CGPoint(x: size.width * 0.25, y: 180) //mais a esquerda em 25% da tela no x
-        
-        player.physicsBody = SKPhysicsBody(circleOfRadius: 25) //fisica circular
+        player.physicsBody = SKPhysicsBody(circleOfRadius: 25)
         player.physicsBody?.allowsRotation = false
-        player.physicsBody?.restitution = 0 //nao quica, =1 quica bastante
+        player.physicsBody?.restitution = 0
         player.physicsBody?.friction = 1
-        player.physicsBody?.linearDamping = 0 //sem desaceleracao
+        player.physicsBody?.linearDamping = 0
+        
         player.physicsBody?.categoryBitMask = PhysicsCategory.player
-        player.physicsBody?.contactTestBitMask = PhysicsCategory.obstacle | PhysicsCategory.ground //toca ou chao ou obstaculo
-        player.physicsBody?.collisionBitMask = PhysicsCategory.ground | PhysicsCategory.obstacle //colide com chao e obstaculo
+        player.physicsBody?.contactTestBitMask = PhysicsCategory.obstacle | PhysicsCategory.ground
+        player.physicsBody?.collisionBitMask = PhysicsCategory.ground | PhysicsCategory.obstacle
         
         addChild(player)
     }
     
+    // MARK: - HUD (Interface)
     private func setupHUD() {
         scoreLabel.fontSize = 26
         scoreLabel.fontColor = .black
@@ -117,46 +128,45 @@ final class GameScene: SKScene, SKPhysicsContactDelegate { //skphysics detecta c
         addChild(bestScoreLabel)
     }
     
-    
     private func refreshHUD() {
-          scoreLabel.text = "Score: \(score)"
-          bestScoreLabel.text = "Best: \(LocalScoreStore.shared.bestScore)"
-      }
+        scoreLabel.text = "Score: \(score)"
+        bestScoreLabel.text = "Best: \(LocalScoreStore.shared.bestScore)"
+    }
     
-    
+    // MARK: - Obstáculos e Controlos
     private func startSpawningObstacles() {
-        let spawn = SKAction.run { [weak self] in //weak self evita retencao de memoria
-            self?.spawnObstacle() //executa spawnObstacle()
+        let spawn = SKAction.run { [weak self] in
+            self?.spawnObstacle()
         }
-        let wait = SKAction.wait(forDuration: 1.8) //tempo entre spawn
-        let sequence = SKAction.sequence([spawn, wait]) //sequencia entre spawn, espera, spawn, espera etc
-        run(.repeatForever(sequence), withKey: "spawnObstacles") //repete infinitamente
+        let wait = SKAction.wait(forDuration: 1.8)
+        let sequence = SKAction.sequence([spawn, wait])
+        run(.repeatForever(sequence), withKey: "spawnObstacles")
     }
     
     private func spawnObstacle() {
-        if isGameOver { return } //se gameover sai da func
+        if isGameOver { return }
         
         let obstacle = SKSpriteNode(color: .systemRed, size: CGSize(width: 30, height: 55))
-        obstacle.position = CGPoint(x: size.width + 60, y: 150) //x: nasce a direita da tela pra dar impressao de que vem de fora, y: acima do chao (aumentar)
+        obstacle.position = CGPoint(x: size.width + 60, y: 150)
         
         obstacle.physicsBody = SKPhysicsBody(rectangleOf: obstacle.size)
-        obstacle.physicsBody?.isDynamic = false //nao sofre nada
-        obstacle.physicsBody?.categoryBitMask = PhysicsCategory.obstacle //eh obstculo
-        obstacle.physicsBody?.contactTestBitMask = PhysicsCategory.player //quer contato com player
-        obstacle.physicsBody?.collisionBitMask = PhysicsCategory.player //colide com player
+        obstacle.physicsBody?.isDynamic = false
+        obstacle.physicsBody?.categoryBitMask = PhysicsCategory.obstacle
+        obstacle.physicsBody?.contactTestBitMask = PhysicsCategory.player
+        obstacle.physicsBody?.collisionBitMask = PhysicsCategory.player
         
-        worldNode.addChild(obstacle) //faz andar junto com o cenario
+        worldNode.addChild(obstacle)
     }
     
     private func jump() {
-        if !canJump || isGameOver { return } //nao pode pular ou gameover = nao pula
+        if !canJump || isGameOver { return }
         
-        canJump = false //se esta pulando nao pula dnv
-        player.physicsBody?.velocity = CGVector(dx: 0, dy: 0) //limpa velocidade antes do impulso p nao acumular
-        player.physicsBody?.applyImpulse(CGVector(dx: 0, dy: 120))//quanto vai para cima
+        canJump = false
+        player.physicsBody?.velocity = CGVector(dx: 0, dy: 0)
+        player.physicsBody?.applyImpulse(CGVector(dx: 0, dy: 120))
     }
     
-    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) { //se acabou reinicia se nao pula
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         if isGameOver {
             restartGame()
         } else {
@@ -164,17 +174,17 @@ final class GameScene: SKScene, SKPhysicsContactDelegate { //skphysics detecta c
         }
     }
     
-    //movement = speed * deltaTime garante movimento consistente
-    override func update(_ currentTime: TimeInterval) { //roda a cada frame do jogo, loop principal
+    // MARK: - Game Loop Principal
+    override func update(_ currentTime: TimeInterval) {
         var deltaTime = currentTime - lastUpdateTime
-        lastUpdateTime = currentTime //calcula quanto tempo teve entre o ultimo frame e o atual
+        lastUpdateTime = currentTime
         
-        if deltaTime > 1 {
-            deltaTime = 1.0 / 60.0 //1 frame a 60 FPS
-        }
+        // Limita o deltaTime a 60 FPS em caso de lag
+        if deltaTime > 1 { deltaTime = 1.0 / 60.0 }
         
-        guard !isGameOver else { return } //se acabou nao continua andando
+        guard !isGameOver else { return } // Impede o cenário e o fundo de andarem se o jogador perdeu
         
+        // Atualiza a Pontuação
         scoreAccumulator += deltaTime
         if scoreAccumulator >= 1 {
           score += 1
@@ -182,58 +192,64 @@ final class GameScene: SKScene, SKPhysicsContactDelegate { //skphysics detecta c
           refreshHUD()
         }
         
+        // Move o chão e os obstáculos
         moveScenario(deltaTime: deltaTime)
-        recycleGround()//recicla chao infinito
-        removeOffscreenObstacles()//remove os obstaculos que ficaram na tela
+        recycleGround()
+        removeOffscreenObstacles()
+        
+        // DELEGA O MOVIMENTO DO FUNDO À NOVA ENTIDADE
+        background.update(deltaTime: deltaTime, scenarioSpeed: scenarioSpeed)
     }
     
     private func moveScenario(deltaTime: TimeInterval) {
-        let moveX = scenarioSpeed * CGFloat(deltaTime) //aprox 4 pontos por frame
+        let moveX = scenarioSpeed * CGFloat(deltaTime)
         
+        // Move apenas os filhos do worldNode (chão e obstáculos)
         for node in worldNode.children {
-            node.position.x -= moveX //tudo do world node move
+            node.position.x -= moveX
         }
     }
     
     private func recycleGround() {
-        //se o centro do chao ja passou da metade da largura para fora da esquerda ele saiu completamente da tela
         for ground in groundPieces {
             if ground.position.x < -ground.size.width / 2 {
-                let rightMostX = groundPieces.map(\.position.x).max() ?? 0 //identifica qual eh o mais a frente
-                ground.position.x = rightMostX + ground.size.width //move o que saiu para logo depois do último
+                let rightMostX = groundPieces.map(\.position.x).max() ?? 0
+                ground.position.x = rightMostX + ground.size.width
             }
         }
     }
     
     private func removeOffscreenObstacles() {
-        //remove o no se ele nao for um dos pedacos do chao ou ja estiver bem fora da tela
         for node in worldNode.children {
             if !groundPieces.contains(where: { $0 == node }) && node.position.x < -100 {
-                node.removeFromParent() //remove da cena
+                node.removeFromParent()
             }
         }
     }
     
+    // MARK: - Colisões e Estado do Jogo
     func didBegin(_ contact: SKPhysicsContact) {
-        let categories = contact.bodyA.categoryBitMask | contact.bodyB.categoryBitMask //combina os bitmasks dos dois corpos sem importar a ordem player+obs ou obs+player
+        let categories = contact.bodyA.categoryBitMask | contact.bodyB.categoryBitMask
         
+        // Contacto com o chão: permite saltar novamente
         if categories == PhysicsCategory.player | PhysicsCategory.ground {
             canJump = true
-        }//encosta no chao pode pular novamente.
+        }
         
+        // Contacto com o obstáculo: fim de jogo
         if categories == PhysicsCategory.player | PhysicsCategory.obstacle {
             gameOver()
-        }//encosta no obstaculo chama gameover
+        }
     }
     
     private func gameOver() {
         isGameOver = true
-        removeAction(forKey: "spawnObstacles") //para de spawn obs
+        removeAction(forKey: "spawnObstacles")
         
         LocalScoreStore.shared.saveIfNeeded(score: score)
         refreshHUD()
         
-        if childNode(withName: "gameOverLabel") == nil { //cria o texto se ele ainda nao existir
+        if childNode(withName: "gameOverLabel") == nil {
             let label = SKLabelNode(text: "Game Over - toque para reiniciar")
             label.name = "gameOverLabel"
             label.fontName = "Avenir-Heavy"
@@ -249,22 +265,25 @@ final class GameScene: SKScene, SKPhysicsContactDelegate { //skphysics detecta c
         canJump = true
         score = 0
         scoreAccumulator = 0
-        //volta ao estado normal
         
-        childNode(withName: "gameOverLabel")?.removeFromParent() //tira a label de gameover
+        childNode(withName: "gameOverLabel")?.removeFromParent()
         
-        worldNode.removeAllChildren() //remove chao verde e obs
-        groundPieces.removeAll() //limpa o array dos blocos de chao
-        player.removeFromParent() //remove o player da cena
-        removeAllActions() //remove acoes em execucao tipo spawn
+        // Limpa tudo
+        worldNode.removeAllChildren()
+        groundPieces.removeAll()
+        player.removeFromParent()
+        removeAllActions()
         
-        lastUpdateTime = 0 //zera o calculo do deltaT
+        lastUpdateTime = 0
         
+        // Dá o comando à entidade para reiniciar o fundo
+        background.reset(in: size)
+        
+        // Recria a cena
         setupGround()
         setupPhysicsGround()
         setupPlayer()
         refreshHUD()
         startSpawningObstacles()
-        //recria o jogo
     }
 }

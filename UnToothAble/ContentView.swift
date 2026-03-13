@@ -16,16 +16,11 @@ struct ContentView: View {
     }()
     
     var body: some View {
-        ZStack{
-            BackgroundMoving()
-            
-            SpriteView(scene: scene)
-                .ignoresSafeArea()
-                .onAppear {
-                    GameCenterManager.shared.authenticate()
-                }
-            
-        }
+        SpriteView(scene: scene)
+            .ignoresSafeArea()
+            .onAppear {
+                GameCenterManager.shared.authenticate()
+            }
     }
 }
 

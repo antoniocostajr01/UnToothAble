@@ -9,19 +9,23 @@ import SwiftUI
 
 struct Home: View {
     var body: some View {
-        
-        Text("UnToothAble")
-            .foregroundStyle(.red)
-            .font(.system(size: 80))
-        
-        
-        Button {
-            //todo: Começar jogo
-        } label: {
-            Text("Play")
-                .foregroundStyle(.black)
-                .font(.system(size: 60))
+        NavigationStack {
+            VStack(spacing: 32) {
+                Text("UnToothAble")
+                    .foregroundStyle(.red)
+                    .font(.system(size: 80))
+
+                NavigationLink {
+                    ContentView()
+                } label: {
+                    Text("Play")
+                        .foregroundStyle(.black)
+                        .font(.system(size: 60))
+                }
+            }
+            .padding()
         }
+        .background(.white)
 
     }
 }
