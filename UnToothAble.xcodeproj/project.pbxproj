@@ -11,6 +11,11 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		B90902692F6598770019DD20 /* .github */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = .github;
+			sourceTree = "<group>";
+		};
 		B909FF912F6498A10019DD20 /* UnToothAble */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = UnToothAble;
@@ -32,6 +37,7 @@
 		B909FF862F6498A10019DD20 = {
 			isa = PBXGroup;
 			children = (
+				B90902692F6598770019DD20 /* .github */,
 				B909FF912F6498A10019DD20 /* UnToothAble */,
 				B90901152F65936D0019DD20 /* UnToothAble.app */,
 			);
@@ -53,6 +59,7 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
+				B90902692F6598770019DD20 /* .github */,
 				B909FF912F6498A10019DD20 /* UnToothAble */,
 			);
 			name = UnToothAble;
