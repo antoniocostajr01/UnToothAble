@@ -4,29 +4,36 @@
 //
 //  Created by Antonio Costa on 15/03/26.
 //
+
 import SpriteKit
 import SwiftUI
 
 struct Game: View {
-    @State private var scene: GameScene = {
-        let s = GameScene()
-        s.scaleMode = .resizeFill
-        return s
-    }()
+
+    @Environment(GameManager.self) var gameManager
 
     var body: some View {
-        SpriteView(scene: scene)
+
+        SpriteView(scene: gameManager.gameScene)
             .ignoresSafeArea()
             .onAppear {
-                let newScene = GameScene()
-                newScene.scaleMode = .resizeFill
-                scene = newScene
+
+                let scene = gameManager.gameScene
+
+                scene.onGameOver = { score in
+                    gameManager.lastScore = score
+                    gameManager.goToScene(.gameOver)
+                }
+
+                gameManager.restartRun = {
+                    scene.restartGame()
+                }
+
+                gameManager.continueRun = {
+                    scene.continueRun()
+                }
+
                 GameCenterManager.shared.authenticate()
             }
     }
-}
-
-#Preview {
-    Game()
-        .environment(GameManager())
 }
