@@ -46,8 +46,8 @@ extension GameScene {
         player.physicsBody?.friction = 1
         player.physicsBody?.linearDamping = 0
         player.physicsBody?.categoryBitMask = GameConstants.PhysicsCategory.player
-        player.physicsBody?.contactTestBitMask = GameConstants.PhysicsCategory.obstacle | GameConstants.PhysicsCategory.ground
-        player.physicsBody?.collisionBitMask = GameConstants.PhysicsCategory.ground | GameConstants.PhysicsCategory.obstacle
+        player.physicsBody?.contactTestBitMask = GameConstants.PhysicsCategory.obstacle | GameConstants.PhysicsCategory.ground | GameConstants.PhysicsCategory.projectile
+        player.physicsBody?.collisionBitMask = GameConstants.PhysicsCategory.ground | GameConstants.PhysicsCategory.obstacle | GameConstants.PhysicsCategory.projectile
 
         addChild(player)
 
@@ -57,6 +57,78 @@ extension GameScene {
         playerEntity = entity
     }
 
+    func startSpawningBoss() {
+        let wait = SKAction.wait(forDuration: 10.0)
+        let spawn = SKAction.run { [weak self] in self?.setupBoss() }
+
+        run(.sequence([wait, spawn]), withKey: "spawnBoss")
+    }
+
+    func setupBoss() {
+        if isGameOver { return }
+
+        let startPos = CGPoint(x: size.width + 100, y: size.height - 220)
+
+        let boss = SKSpriteNode(imageNamed: GameConstants.Assets.bossFrame1)
+        boss.size = CGSize(width: 400, height: 400)
+        boss.position = startPos
+
+        let texture1 = SKTexture(imageNamed: GameConstants.Assets.bossFrame1)
+        let texture2 = SKTexture(imageNamed: GameConstants.Assets.bossFrame2)
+        let flapAnimation = SKAction.animate(with: [texture1, texture2], timePerFrame: 0.2)
+                boss.run(.repeatForever(flapAnimation))
+
+        worldNode.addChild(boss)
+
+        let entity = BossFactory.create(in: ecsWorld, at: startPos)
+        ecsWorld.addComponent(SpriteComponent(node: boss), to: entity)
+
+        startBossBehavior(for: boss)
+    }
+
+    private func startBossBehavior(for node: SKNode) {
+
+        if isGameOver { return }
+
+        let moveUp = SKAction.moveBy(x: 0, y: 100, duration: 1.2)
+        moveUp.timingMode = .easeInEaseOut
+        let moveDown = moveUp.reversed()
+        moveDown.timingMode = .easeInEaseOut
+        node.run(.repeatForever(.sequence([moveUp, moveDown])))
+        
+        let moveIn = SKAction.moveTo(x: size.width - 200, duration: 1.0)
+        let waitToShoot = SKAction.wait(forDuration: 1.0)
+        let shoot = SKAction.run { [weak self] in
+            self?.spawnBossProjectile(from: node.position)
+        }
+        let attackPhase = SKAction.repeat(.sequence([waitToShoot, shoot]), count: Int.random(in: 3...6))
+        let moveOut = SKAction.moveTo(x: size.width + 100, duration: 1.0)
+        let cooldown = SKAction.wait(forDuration: 10.0)
+
+        let fullCycle = SKAction.sequence([moveIn, attackPhase, moveOut, cooldown])
+        node.run(.repeatForever(fullCycle))
+    }
+    
+    private func spawnBossProjectile(from position: CGPoint) {
+        if isGameOver { return }
+        
+        let projectile = SKShapeNode(circleOfRadius: 8)
+        projectile.fillColor = .green
+        projectile.strokeColor = .clear
+        projectile.position = position
+
+        projectile.physicsBody = SKPhysicsBody(circleOfRadius: 8)
+        projectile.physicsBody?.isDynamic = false
+        projectile.physicsBody?.categoryBitMask = GameConstants.PhysicsCategory.projectile
+        projectile.physicsBody?.contactTestBitMask = GameConstants.PhysicsCategory.player
+        
+        worldNode.addChild(projectile)
+        
+        let moveLeft = SKAction.moveBy(x: -size.width - 100, y: 0, duration: 2.0)
+        let remove = SKAction.removeFromParent()
+        projectile.run(.sequence([moveLeft, remove]))
+    }
+    
     func startSpawningObstacles() {
         let spawn = SKAction.run { [weak self] in self?.spawnObstacle() }
         let wait = SKAction.wait(forDuration: 1.8)
@@ -81,4 +153,34 @@ extension GameScene {
         let entity = ObstacleFactory.create(in: ecsWorld, at: spawnPosition)
         ecsWorld.addComponent(SpriteComponent(node: obstacle), to: entity)
     }
+    
+//    func startSpawningAerialObstacles() {
+//        let spawn = SKAction.run { [weak self] in self?.spawnAerialObstacle() }
+//        let wait = SKAction.wait(forDuration: 6.0)
+//        run(.repeatForever(.sequence([spawn, wait])), withKey: "spawnAerialObstacles")
+//    }
+//    
+//    func spawnAerialObstacle() {
+//        if isGameOver { return }
+//        
+//        let aerialObstacle = SKSpriteNode(color: .systemYellow, size: CGSize(width: 20, height: 20))
+//
+//        let minY = GameConstants.Layout.groundBaseY + 80
+//        let maxY = size.height - 50
+//        let randomY = CGFloat.random(in: minY...maxY)
+//
+//        let spawnPosition = CGPoint(x: size.width + 300, y: randomY)
+//        aerialObstacle.position = spawnPosition
+//
+//        aerialObstacle.physicsBody = SKPhysicsBody(rectangleOf: aerialObstacle.size)
+//        aerialObstacle.physicsBody?.isDynamic = false
+//        aerialObstacle.physicsBody?.categoryBitMask = GameConstants.PhysicsCategory.obstacle
+//        aerialObstacle.physicsBody?.contactTestBitMask = GameConstants.PhysicsCategory.player
+//        aerialObstacle.physicsBody?.collisionBitMask = GameConstants.PhysicsCategory.player
+//        
+//        worldNode.addChild(aerialObstacle)
+//        
+//        let entity = ObstacleFactory.create(in: ecsWorld, at: spawnPosition)
+//        ecsWorld.addComponent(SpriteComponent(node: aerialObstacle), to: entity)
+//    }
 }

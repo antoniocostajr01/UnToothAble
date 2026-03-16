@@ -24,6 +24,9 @@ enum CollisionHandler {
         if categories == GameConstants.PhysicsCategory.player | GameConstants.PhysicsCategory.obstacle {
             return .obstacleHit
         }
+        if categories == GameConstants.PhysicsCategory.player | GameConstants.PhysicsCategory.projectile {
+            return .obstacleHit
+        }
         return .none
     }
 }

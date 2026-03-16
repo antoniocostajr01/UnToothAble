@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXFileReference section */
-		BF14089E2F686DF100011B92 /* UnToothAble.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = UnToothAble.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		E8E586472F686C6300F85DD6 /* UnToothAble.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = UnToothAble.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -39,7 +39,7 @@
 			children = (
 				B90902692F6598770019DD20 /* .github */,
 				B909FF912F6498A10019DD20 /* UnToothAble */,
-				BF14089E2F686DF100011B92 /* UnToothAble.app */,
+				E8E586472F686C6300F85DD6 /* UnToothAble.app */,
 			);
 			sourceTree = "<group>";
 		};
@@ -66,7 +66,7 @@
 			packageProductDependencies = (
 			);
 			productName = UnToothAble;
-			productReference = BF14089E2F686DF100011B92 /* UnToothAble.app */;
+			productReference = E8E586472F686C6300F85DD6 /* UnToothAble.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
