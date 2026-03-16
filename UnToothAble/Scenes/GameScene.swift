@@ -24,6 +24,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     var isGameOver = false
     private var canJump = true
     private var lastUpdateTime: TimeInterval = 0
+    var fixedPlayerX: CGFloat = 0
 
     // Pontuação
     private var score: Int = 0
@@ -92,6 +93,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         lastUpdateTime = currentTime
         if deltaTime > 1 { deltaTime = 1.0 / 60.0 }
 
+        player.position.x = fixedPlayerX
+        player.physicsBody?.velocity.dx = 0
+
         guard !isGameOver else { return }
 
         scoreAccumulator += deltaTime
@@ -105,13 +109,16 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         scrollSystem.update(world: ecsWorld, deltaTime: deltaTime)
         syncPositionToNodes()
 
+        player.position.x = fixedPlayerX
+        player.physicsBody?.velocity.dx = 0
+
         moveGroundOnly(deltaTime: deltaTime)
         recycleGround()
         removeOffscreenObstacles()
 
         background.update(deltaTime: deltaTime, scenarioSpeed: GameConstants.Physics.scenarioSpeed)
     }
-
+    
     private func syncPlayerPositionFromNode() {
         guard let entity = playerEntity,
               var pos = ecsWorld.component(PositionComponent.self, for: entity) else { return }
@@ -164,31 +171,31 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         return nil
     }
 
-    private func removeObstacleThatKilledPlayer() {
-        guard let obstacleNode = lastHitObstacleNode else { return }
-
-        let matchingEntities = ecsWorld.entities(with: [ObstacleComponent.self, SpriteComponent.self])
+    private func removeAllObstaclesAheadOfPlayer() {
+        let entitiesToRemove = ecsWorld.entities(with: [ObstacleComponent.self, SpriteComponent.self, PositionComponent.self])
             .filter { entity in
-                ecsWorld.component(SpriteComponent.self, for: entity)?.node === obstacleNode
+                guard let pos = ecsWorld.component(PositionComponent.self, for: entity) else { return false }
+                return pos.x >= fixedPlayerX - 40
             }
 
-        obstacleNode.removeFromParent()
-
-        for entity in matchingEntities {
+        for entity in entitiesToRemove {
+            ecsWorld.component(SpriteComponent.self, for: entity)?.node.removeFromParent()
             ecsWorld.removeEntity(entity)
         }
-
-        lastHitObstacleNode = nil
     }
     
     func continueRun() {
-        removeObstacleThatKilledPlayer()
+        removeAllObstaclesAheadOfPlayer()
+        lastHitObstacleNode = nil
+
         removeAction(forKey: "spawnObstacles")
         startSpawningObstacles()
 
+        player.position.x = fixedPlayerX
         player.physicsBody?.velocity = .zero
         player.physicsBody?.applyImpulse(CGVector(dx: 0, dy: 80))
 
+        canJump = false
         isGameOver = false
         gameOverOverlay.hide(from: self)
         lastUpdateTime = 0
@@ -210,6 +217,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     }
     
     private func gameOver(hitObstacleNode: SKNode?) {
+        guard !isGameOver else { return }
+
         isGameOver = true
         lastHitObstacleNode = hitObstacleNode
 

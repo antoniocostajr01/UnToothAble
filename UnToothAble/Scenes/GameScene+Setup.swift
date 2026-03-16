@@ -37,8 +37,10 @@ extension GameScene {
     }
 
     func setupPlayer() {
+        fixedPlayerX = size.width * 0.25
+
         player.size = CGSize(width: 70, height: 70)
-        player.position = CGPoint(x: size.width * 0.25, y: 180)
+        player.position = CGPoint(x: fixedPlayerX, y: 180)
 
         player.physicsBody = SKPhysicsBody(circleOfRadius: 25)
         player.physicsBody?.allowsRotation = false
@@ -56,7 +58,7 @@ extension GameScene {
         ecsWorld.addComponent(SpriteComponent(node: player), to: entity)
         playerEntity = entity
     }
-
+    
     func startSpawningObstacles() {
         let spawn = SKAction.run { [weak self] in self?.spawnObstacle() }
         let wait = SKAction.wait(forDuration: 1.8)
