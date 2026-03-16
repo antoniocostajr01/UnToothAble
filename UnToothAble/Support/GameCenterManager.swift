@@ -34,9 +34,6 @@ final class GameCenterManager {
             
             if GKLocalPlayer.local.isAuthenticated {
                 print("Game Center autenticado:", GKLocalPlayer.local.displayName)
-                
-                GKAccessPoint.shared.location = .topLeading
-                GKAccessPoint.shared.isActive = true
             }
         }
     }
