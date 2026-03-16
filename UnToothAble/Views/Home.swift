@@ -8,15 +8,18 @@
 import SwiftUI
 
 struct Home: View {
+    
+    @Environment(GameManager.self) var gameManager
+    
     var body: some View {
-        NavigationStack {
+        
             VStack(spacing: 32) {
                 Text("UnToothAble")
                     .foregroundStyle(.red)
                     .font(.system(size: 80))
 
-                NavigationLink {
-                    ContentView()
+                Button {
+                    gameManager.goToScene(.game)
                 } label: {
                     Text("Play")
                         .foregroundStyle(.black)
@@ -24,12 +27,12 @@ struct Home: View {
                 }
             }
             .padding()
+            .background(.white)
         }
-        .background(.white)
-
-    }
+        
 }
 
 #Preview {
     Home()
+        .environment(GameManager())
 }
