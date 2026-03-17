@@ -67,7 +67,7 @@ extension GameScene {
     func setupBoss() {
         if isGameOver { return }
 
-        let startPos = CGPoint(x: size.width + 100, y: size.height - 220)
+        let startPos = CGPoint(x: size.width + 250, y: size.height * 0.75)
 
         let boss = SKSpriteNode(imageNamed: GameConstants.Assets.bossFrame1)
         boss.size = CGSize(width: 400, height: 400)
@@ -90,11 +90,14 @@ extension GameScene {
 
         if isGameOver { return }
 
-        let moveUp = SKAction.moveBy(x: 0, y: 100, duration: 1.2)
-        moveUp.timingMode = .easeInEaseOut
-        let moveDown = moveUp.reversed()
+        let minY = GameConstants.Layout.groundBaseY + 20
+        let maxY = size.height - (node.frame.size.height / 2)
+
+        let moveDown = SKAction.moveTo(y: minY, duration: 2.0)
         moveDown.timingMode = .easeInEaseOut
-        node.run(.repeatForever(.sequence([moveUp, moveDown])))
+        let moveUp = SKAction.moveTo(y: maxY, duration: 2.0)
+        moveUp.timingMode = .easeInEaseOut
+        node.run(.repeatForever(.sequence([moveDown, moveUp])))
         
         let moveIn = SKAction.moveTo(x: size.width - 200, duration: 1.0)
         let waitToShoot = SKAction.wait(forDuration: 1.0)
@@ -102,7 +105,8 @@ extension GameScene {
             self?.spawnBossProjectile(from: node.position)
         }
         let attackPhase = SKAction.repeat(.sequence([waitToShoot, shoot]), count: Int.random(in: 3...6))
-        let moveOut = SKAction.moveTo(x: size.width + 100, duration: 1.0)
+        
+        let moveOut = SKAction.moveTo(x: size.width + 250, duration: 1.0)
         let cooldown = SKAction.wait(forDuration: 10.0)
 
         let fullCycle = SKAction.sequence([moveIn, attackPhase, moveOut, cooldown])

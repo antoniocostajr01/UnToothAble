@@ -26,7 +26,7 @@ enum GameConstants {
     // MARK: - Layout
     enum Layout {
         static let groundHeight: CGFloat = 60
-        static let groundBaseY: CGFloat = 120
+        static let groundBaseY: CGFloat = 30
     }
 
     // MARK: - Asset names
