@@ -13,16 +13,18 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     private var scrollSystem: ScrollSystem!
     var playerEntity: Entity?
 
-    // Nós da cena (internal para GameScene+Setup)
+    // Nós da cena
     let worldNode = SKNode()
     let player = SKSpriteNode(imageNamed: GameConstants.Assets.playerImage)
     private let background = ScrollingBackground()
+    private weak var lastHitObstacleNode: SKNode?
 
-    // Estado (internal onde necessário para extensão)
+    // Estado
     var groundPieces: [SKSpriteNode] = []
     var isGameOver = false
     private var canJump = true
     var lastUpdateTime: TimeInterval = 0
+    var fixedPlayerX: CGFloat = 0
 
     // Pontuação
     private var score: Int = 0
@@ -31,6 +33,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     // Responsabilidades extraídas
     private let gameHUD = GameHUD()
     private let gameOverOverlay = GameOverOverlay()
+    var onGameOver: ((Int) -> Void)?
 
     // MARK: - Inicialização
     override func didMove(to view: SKView) {
@@ -80,7 +83,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     }
 
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-        if isGameOver { restartGame() } else { jump() }
+        guard !isGameOver else { return }
+        jump()
     }
 
     // MARK: - Game loop
@@ -88,6 +92,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         var deltaTime = currentTime - lastUpdateTime
         lastUpdateTime = currentTime
         if deltaTime > 1 { deltaTime = 1.0 / 60.0 }
+
+        player.position.x = fixedPlayerX
+        player.physicsBody?.velocity.dx = 0
 
         guard !isGameOver else { return }
 
@@ -101,6 +108,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         syncPlayerPositionFromNode()
         scrollSystem.update(world: ecsWorld, deltaTime: deltaTime)
         syncPositionToNodes()
+
+        player.position.x = fixedPlayerX
+        player.physicsBody?.velocity.dx = 0
 
         moveGroundOnly(deltaTime: deltaTime)
         recycleGround()
@@ -145,26 +155,74 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             .filter { entity in
                 (ecsWorld.component(PositionComponent.self, for: entity)?.x ?? 0) < -100
             }
+
         for entity in toRemove {
             ecsWorld.component(SpriteComponent.self, for: entity)?.node.removeFromParent()
             ecsWorld.removeEntity(entity)
         }
     }
 
-    // MARK: - Colisões (delegadas ao CollisionHandler)
+    private func obstacleNode(from contact: SKPhysicsContact) -> SKNode? {
+        if contact.bodyA.categoryBitMask == GameConstants.PhysicsCategory.obstacle {
+            return contact.bodyA.node
+        }
+        if contact.bodyB.categoryBitMask == GameConstants.PhysicsCategory.obstacle {
+            return contact.bodyB.node
+        }
+        return nil
+    }
+
+    private func removeAllObstaclesAheadOfPlayer() {
+        let entitiesToRemove = ecsWorld.entities(with: [ObstacleComponent.self, SpriteComponent.self, PositionComponent.self])
+            .filter { entity in
+                guard let pos = ecsWorld.component(PositionComponent.self, for: entity) else { return false }
+                return pos.x >= fixedPlayerX - 40
+            }
+
+        for entity in entitiesToRemove {
+            ecsWorld.component(SpriteComponent.self, for: entity)?.node.removeFromParent()
+            ecsWorld.removeEntity(entity)
+        }
+    }
+
+    func continueRun() {
+        removeAllObstaclesAheadOfPlayer()
+        lastHitObstacleNode = nil
+
+        removeAction(forKey: "spawnObstacles")
+        startSpawningObstacles()
+
+        player.position.x = fixedPlayerX
+        player.physicsBody?.velocity = .zero
+        player.physicsBody?.applyImpulse(CGVector(dx: 0, dy: 80))
+
+        canJump = false
+        isGameOver = false
+        gameOverOverlay.hide(from: self)
+        lastUpdateTime = 0
+    }
+
+    // MARK: - Colisões
     func didBegin(_ contact: SKPhysicsContact) {
         switch CollisionHandler.handle(contact) {
         case .groundTouched:
             canJump = true
+
         case .obstacleHit:
-            gameOver()
+            let obstacleNode = obstacleNode(from: contact)
+            gameOver(hitObstacleNode: obstacleNode)
+
         case .none:
             break
         }
     }
 
-    private func gameOver() {
+    private func gameOver(hitObstacleNode: SKNode?) {
+        guard !isGameOver else { return }
+
         isGameOver = true
+        lastHitObstacleNode = hitObstacleNode
+
         removeAction(forKey: "spawnObstacles")
         LocalScoreStore.shared.saveIfNeeded(score: score)
         gameHUD.update(score: score, bestScore: LocalScoreStore.shared.bestScore)

@@ -4,31 +4,25 @@
 //
 //  Created by Antonio Costa on 15/03/26.
 //
+
 import SpriteKit
 import SwiftUI
 
 struct Game: View {
 
     @Environment(GameManager.self) var gameManager
-
-    @State private var scene: GameScene = {
-        let s = GameScene()
-        s.scaleMode = .resizeFill
-        return s
-    }()
-
     @State private var showPauseMenu = false
 
     var body: some View {
         ZStack {
-            SpriteView(scene: scene)
+            SpriteView(scene: gameManager.gameScene)
                 .ignoresSafeArea()
 
             VStack {
                 HStack {
                     Spacer()
                     Button {
-                        scene.pauseGame()
+                        gameManager.gameScene.pauseGame()
                         showPauseMenu = true
                     } label: {
                         Image(systemName: "pause.circle.fill")
@@ -46,9 +40,21 @@ struct Game: View {
             }
         }
         .onAppear {
-            let newScene = GameScene()
-            newScene.scaleMode = .resizeFill
-            scene = newScene
+            let scene = gameManager.gameScene
+
+            scene.onGameOver = { score in
+                gameManager.lastScore = score
+                showPauseMenu = false
+                gameManager.goToScene(.gameOver)
+            }
+
+            gameManager.restartRun = {
+                scene.restartGame()
+            }
+
+            gameManager.continueRun = {
+                scene.continueRun()
+            }
         }
     }
 
@@ -65,18 +71,18 @@ struct Game: View {
 
                 menuButton(title: "Continue", icon: "play.fill", color: .systemGreen) {
                     showPauseMenu = false
-                    scene.resumeGame()
+                    gameManager.gameScene.resumeGame()
                 }
 
                 menuButton(title: "Restart", icon: "arrow.clockwise", color: .systemBlue) {
                     showPauseMenu = false
-                    scene.resumeGame()
-                    scene.restartGame()
+                    gameManager.gameScene.resumeGame()
+                    gameManager.gameScene.restartGame()
                 }
 
                 menuButton(title: "Home", icon: "house.fill", color: .systemOrange) {
                     showPauseMenu = false
-                    scene.resumeGame() //limpa o pause antes de sair
+                    gameManager.gameScene.resumeGame()
                     gameManager.goToScene(.home)
                 }
             }
@@ -88,8 +94,7 @@ struct Game: View {
             .padding(.horizontal, 48)
         }
     }
-    
-//pra nao criar 3 botoes iguais
+
     @ViewBuilder
     private func menuButton(
         title: String,
@@ -125,7 +130,6 @@ extension GameScene {
         lastUpdateTime = 0
     }
 }
-
 
 #Preview {
     Game()
