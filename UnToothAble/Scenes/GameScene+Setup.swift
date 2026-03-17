@@ -53,6 +53,18 @@ extension GameScene {
 
         addChild(player)
 
+        jetpack = SKShapeNode(rectOf: CGSize(width: 14, height: 18))
+        jetpack.fillColor = .gray
+        jetpack.strokeColor = .clear
+        jetpack.position = CGPoint(x: -25, y: -20)
+        player.addChild(jetpack)
+
+        fuelBar = SKShapeNode(rectOf: CGSize(width: 40, height: 6))
+        fuelBar.fillColor = .systemGreen
+        fuelBar.strokeColor = .clear
+        fuelBar.position = CGPoint(x: 0, y: 40)
+        player.addChild(fuelBar)
+
         let entity = PlayerFactory.create(in: ecsWorld)
         ecsWorld.addComponent(PositionComponent(x: player.position.x, y: player.position.y), to: entity)
         ecsWorld.addComponent(SpriteComponent(node: player), to: entity)
