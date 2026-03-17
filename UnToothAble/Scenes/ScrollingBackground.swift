@@ -5,7 +5,7 @@ final class ScrollingBackground: SKNode {
     private var backgroundNodes: [SKSpriteNode] = []
     private var backgroundRecycleCount = 0
     private let speedMultiplier: CGFloat = 0.5
-    private let initialBGs = ["Background1Level1", "Background2Level1", "Background3Level1"]
+    var initialBGs = ["Background1Level1", "Background2Level1", "Background3Level1"]
     
     func setup(in size: CGSize) {
         self.removeAllChildren()
@@ -15,7 +15,7 @@ final class ScrollingBackground: SKNode {
         // 1. Criamos um "cursor" para saber exatamente onde a última imagem terminou
         var currentX: CGFloat = 0
         
-        for setIndex in 0..<2 {
+//        for setIndex in 0..<2 {
             for (imageIndex, name) in initialBGs.enumerated() {
                 let bg = SKSpriteNode(imageNamed: name)
                 
@@ -38,7 +38,7 @@ final class ScrollingBackground: SKNode {
                 // O "- 1" é o segredo: ele faz a próxima imagem sobrepor 1 pixel, eliminando as linhas em branco!
                 currentX += scaleWidth - 1
             }
-        }
+//        }
     }
     
     func update(deltaTime: TimeInterval, scenarioSpeed: CGFloat) {
@@ -63,15 +63,20 @@ final class ScrollingBackground: SKNode {
                     
                     backgroundRecycleCount += 1
                     print(backgroundRecycleCount)
+                    print(initialBGs)
                     
                     // Troca de fase
                     if backgroundRecycleCount == 6 {
                         if bg.name == "bg_0" {
-                            bg.texture = SKTexture(imageNamed: "Background1To2")
+                            initialBGs[0] = "Background1To2"
+//                            bg.texture = SKTexture(imageNamed: "Background1To2")
                         } else if bg.name == "bg_1" {
-                            bg.texture = SKTexture(imageNamed: "BackgroundTransitionTo2")
+                            initialBGs[1] = "ackgroundTransitionTo2"
+//                            bg.texture = SKTexture(imageNamed: "BackgroundTransitionTo2")
                         } else if bg.name == "bg_2" {
-                            bg.texture = SKTexture(imageNamed: "Background3Level2")
+                            initialBGs[2] = "Background3Level2"
+
+//                            bg.texture = SKTexture(imageNamed: "Background3Level2")
                         }
                     }
                     if backgroundRecycleCount == 8 {
