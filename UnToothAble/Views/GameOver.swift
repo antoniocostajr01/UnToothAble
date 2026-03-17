@@ -45,6 +45,7 @@ struct GameOver: View {
 
                 Button("Back to Menu") {
                     gameManager.resetReviveForNewRun()
+                    gameManager.gameScene.restartGame()
                     gameManager.goToScene(.home)
                 }
                 .buttonStyle(.bordered)
