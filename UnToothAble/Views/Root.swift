@@ -20,6 +20,8 @@ struct Root: View {
                 Settings()
             case .game:
                 Game()
+            case .shop:
+                Shop()
             }
         }
         .environment(gameManager)

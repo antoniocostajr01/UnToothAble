@@ -49,7 +49,6 @@ struct Game: View {
             let newScene = GameScene()
             newScene.scaleMode = .resizeFill
             scene = newScene
-            GameCenterManager.shared.authenticate()
         }
     }
 
