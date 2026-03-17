@@ -1,13 +1,12 @@
 //
-//  Settings.swift
+//  Shop.swift
 //  UnToothAble
 //
-//  Created by Antonio Costa on 15/03/26.
+//  Created by sofia leitao on 17/03/26.
 //
-
 import SwiftUI
 
-struct Settings: View {
+struct Shop: View {
     @Environment(GameManager.self) var gameManager
     
     var body: some View {
@@ -22,5 +21,5 @@ struct Settings: View {
 }
 
 #Preview {
-    Settings()
+    Shop()
 }

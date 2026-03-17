@@ -55,8 +55,6 @@ struct Game: View {
             gameManager.continueRun = {
                 scene.continueRun()
             }
-
-            GameCenterManager.shared.authenticate()
         }
     }
 

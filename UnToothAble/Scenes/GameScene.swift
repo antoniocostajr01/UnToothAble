@@ -229,7 +229,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
 //        removeAction(forKey: "spawnAerialObstacles")
         removeAction(forKey: "spawnBoss")
         LocalScoreStore.shared.saveIfNeeded(score: score)
-        onGameOver?(score)
+        gameHUD.update(score: score, bestScore: LocalScoreStore.shared.bestScore)
+        gameOverOverlay.show(in: self)        
     }
 
     func restartGame() {
