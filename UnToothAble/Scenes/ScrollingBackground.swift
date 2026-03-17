@@ -53,36 +53,51 @@ final class ScrollingBackground: SKNode {
     }
     
     // Método que a sua GameScene já chama automaticamente
-    func update(deltaTime: TimeInterval, scenarioSpeed: CGFloat) {
-        let moveX = scenarioSpeed * CGFloat(deltaTime) * speedMultiplier
-        
-        for bg in backgroundNodes {
-            // 1. Move a imagem
-            bg.position.x -= moveX
+    // Método que a sua GameScene já chama automaticamente
+        func update(deltaTime: TimeInterval, scenarioSpeed: CGFloat) {
+            let moveX = scenarioSpeed * CGFloat(deltaTime) * speedMultiplier
             
-            // 2. Verifica se saiu TOTALMENTE da tela pela esquerda
-            if bg.position.x <= -(panelWidth / 2) {
+            for bg in backgroundNodes {
+                // 1. Move a imagem
+                bg.position.x -= moveX
                 
-                // Joga a imagem para o final da fila exata (3 larguras de distância)
-                bg.position.x += panelWidth * 3
-                
-                totalRecycles += 1
-                
-                // 3. Troca de textura DEBAIXO DOS PANOS
-                // Como temos 3 imagens, 1 ciclo completo = 3 reciclagens.
-                // Se quiser trocar após 2 ciclos completos, o valor é 6.
-                if totalRecycles == 6 {
+                // 2. Verifica se saiu TOTALMENTE da tela pela esquerda
+                if bg.position.x <= -(panelWidth / 2) {
+                    
+                    // Joga a imagem para o final da fila exata (3 larguras de distância)
+                    bg.position.x += panelWidth * 3
+                    
+                    totalRecycles += 1
+                    
+                    // 3. Troca de textura DEBAIXO DOS PANOS - Painel por Painel
                     if bg.name == "bg_0" {
-                        bg.texture = SKTexture(imageNamed: "TransitionBG1")
-                    } else if bg.name == "bg_1" {
-                        bg.texture = SKTexture(imageNamed: "TransitionBG2")
-                    } else if bg.name == "bg_2" {
-                        bg.texture = SKTexture(imageNamed: "Background3Level2")
+                        if totalRecycles == 7 {
+                            // Terceira vez que o bg_0 recicla: Vira Transição
+                            bg.texture = SKTexture(imageNamed: "TransitionBG1")
+                        } else if totalRecycles >= 10 {
+                            // Quarta vez em diante: Vira Level 2 definitivo
+                            bg.texture = SKTexture(imageNamed: "Background1Level2")
+                        }
+                    }
+                    else if bg.name == "bg_1" {
+                        if totalRecycles == 8 {
+                            // Terceira vez que o bg_1 recicla: Vira Transição
+                            bg.texture = SKTexture(imageNamed: "TransitionBG2")
+                        } else if totalRecycles >= 11 {
+                            // Quarta vez em diante: Vira Level 2 definitivo
+                            bg.texture = SKTexture(imageNamed: "Background2Level2")
+                        }
+                    }
+                    else if bg.name == "bg_2" {
+                        // O bg_2 não tem uma textura de "transição", ele já assume o level 2 e fica.
+                        // A partir da reciclagem 9, ele sempre será o Level 2.
+                        if totalRecycles >= 9 {
+                            bg.texture = SKTexture(imageNamed: "Background3Level2")
+                        }
                     }
                 }
             }
         }
-    }
     
     // Reseta o background para o estado inicial
     func reset(in size: CGSize) {
