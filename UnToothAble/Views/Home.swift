@@ -25,6 +25,14 @@ struct Home: View {
                         .foregroundStyle(.black)
                         .font(.system(size: 60))
                 }
+                
+                Button {
+                    GameCenterManager.shared.showLeaderboard()
+                } label: {
+                    Text("Ranking")
+                        .foregroundStyle(.black)
+                        .font(.system(size: 40))
+                }
             }
             .padding()
             .background(.white)

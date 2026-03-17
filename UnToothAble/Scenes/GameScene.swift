@@ -169,6 +169,10 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         LocalScoreStore.shared.saveIfNeeded(score: score)
         gameHUD.update(score: score, bestScore: LocalScoreStore.shared.bestScore)
         gameOverOverlay.show(in: self)
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+              GameCenterManager.shared.showLeaderboard()
+          }
     }
 
     func restartGame() {
