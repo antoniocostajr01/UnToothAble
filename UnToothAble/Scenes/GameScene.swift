@@ -23,7 +23,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     var groundPieces: [SKSpriteNode] = []
     var isGameOver = false
     private var canJump = true
-    private var lastUpdateTime: TimeInterval = 0
+    var lastUpdateTime: TimeInterval = 0
     var fixedPlayerX: CGFloat = 0
 
     // Pontuação
