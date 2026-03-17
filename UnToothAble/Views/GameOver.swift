@@ -7,6 +7,7 @@
 
 
 import SwiftUI
+import UIKit
 
 struct GameOver: View {
 
@@ -17,9 +18,7 @@ struct GameOver: View {
     var onContinue: () -> Void
 
     var body: some View {
-
         VStack(spacing: 30) {
-
             Text("Game Over")
                 .font(.system(size: 60, weight: .bold))
                 .foregroundStyle(.black)
@@ -30,11 +29,13 @@ struct GameOver: View {
 
             VStack(spacing: 20) {
 
-                Button("Continue Run") {
-                    onContinue()
-                    gameManager.goToScene(.game)
+                Button {
+                    showRewardedAndContinue()
+                } label: {
+                    Text(gameManager.hasUsedReviveThisRun ? "Continue Unavailable" : "Continue Run")
                 }
                 .buttonStyle(.bordered)
+                .disabled(!gameManager.canUseContinue)
 
                 Button("Restart Run") {
                     onRestart()
@@ -43,6 +44,7 @@ struct GameOver: View {
                 .buttonStyle(.bordered)
 
                 Button("Back to Menu") {
+                    gameManager.resetReviveForNewRun()
                     gameManager.goToScene(.home)
                 }
                 .buttonStyle(.bordered)
@@ -51,5 +53,48 @@ struct GameOver: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(.white)
+        .onAppear {
+            gameManager.refreshRewardedAvailability()
+        }
+    }
+
+    private func showRewardedAndContinue() {
+        guard gameManager.canUseContinue else { return }
+        guard let rootVC = topViewController() else { return }
+
+        gameManager.isShowingRewardedAd = true
+
+        RewardedAdManager.shared.presentAd(
+            from: rootVC,
+            onRewardEarned: {
+                gameManager.markReviveAsUsed()
+                gameManager.isShowingRewardedAd = false
+                onContinue()
+                gameManager.goToScene(.game)
+            },
+            onFinishedWithoutReward: {
+                gameManager.isShowingRewardedAd = false
+                gameManager.refreshRewardedAvailability()
+            }
+        )
+    }
+    
+    private func topViewController(
+        base: UIViewController? = UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+            .flatMap { $0.windows }
+            .first(where: { $0.isKeyWindow })?
+            .rootViewController
+    ) -> UIViewController? {
+        if let nav = base as? UINavigationController {
+            return topViewController(base: nav.visibleViewController)
+        }
+        if let tab = base as? UITabBarController, let selected = tab.selectedViewController {
+            return topViewController(base: selected)
+        }
+        if let presented = base?.presentedViewController {
+            return topViewController(base: presented)
+        }
+        return base
     }
 }

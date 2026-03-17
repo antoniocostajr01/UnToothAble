@@ -8,16 +8,21 @@
 import Foundation
 import SwiftUI
 import SpriteKit
+import Observation
 
 @Observable
+@MainActor
 class GameManager {
 
     var currentScene: GameDelegator = .home
-
     var lastScore: Int = 0
 
     var restartRun: () -> Void = {}
     var continueRun: () -> Void = {}
+
+    var hasUsedReviveThisRun = false
+    var isRewardedAdReady = false
+    var isShowingRewardedAd = false
 
     let gameScene: GameScene = {
         let scene = GameScene()
@@ -27,5 +32,23 @@ class GameManager {
 
     func goToScene(_ scene: GameDelegator) {
         currentScene = scene
+    }
+
+    var canUseContinue: Bool {
+        !hasUsedReviveThisRun && isRewardedAdReady && !isShowingRewardedAd
+    }
+
+    func refreshRewardedAvailability() {
+        isRewardedAdReady = RewardedAdManager.shared.isAdReady
+    }
+
+    func resetReviveForNewRun() {
+        hasUsedReviveThisRun = false
+        refreshRewardedAvailability()
+    }
+
+    func markReviveAsUsed() {
+        hasUsedReviveThisRun = true
+        isRewardedAdReady = false
     }
 }
