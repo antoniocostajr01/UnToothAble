@@ -5,7 +5,7 @@ final class ScrollingBackground: SKNode {
     private var backgroundNodes: [SKSpriteNode] = []
     private var backgroundRecycleCount = 0
     private let speedMultiplier: CGFloat = 0.5
-    private let initialBGs = ["Background1", "Background2", "Background3"]
+    private let initialBGs = ["Background1Level1", "Background2Level1", "Background3Level1"]
     
     func setup(in size: CGSize) {
         self.removeAllChildren()
@@ -62,13 +62,23 @@ final class ScrollingBackground: SKNode {
                     bg.position.x = newX
                     
                     backgroundRecycleCount += 1
+                    print(backgroundRecycleCount)
                     
                     // Troca de fase
-                    if backgroundRecycleCount > 2 {
+                    if backgroundRecycleCount == 6 {
                         if bg.name == "bg_0" {
-                            bg.texture = SKTexture(imageNamed: "BackgroundNaruto")
+                            bg.texture = SKTexture(imageNamed: "Background1To2")
                         } else if bg.name == "bg_1" {
-                            bg.texture = SKTexture(imageNamed: "BackgroundNaruto2")
+                            bg.texture = SKTexture(imageNamed: "BackgroundTransitionTo2")
+                        } else if bg.name == "bg_2" {
+                            bg.texture = SKTexture(imageNamed: "Background3Level2")
+                        }
+                    }
+                    if backgroundRecycleCount == 8 {
+                        if bg.name == "bg_0" {
+                            bg.texture = SKTexture(imageNamed: "Background1Level2")
+                        } else if bg.name == "bg_1" {
+                            bg.texture = SKTexture(imageNamed: "Background2Level2")
                         }
                     }
                 }
