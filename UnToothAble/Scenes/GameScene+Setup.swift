@@ -128,7 +128,7 @@ extension GameScene {
         
         worldNode.addChild(projectile)
         
-        let moveLeft = SKAction.moveBy(x: -size.width - 100, y: 0, duration: 2.0)
+        let moveLeft = SKAction.moveBy(x: -size.width - 100, y: 0, duration: 3.0)
         let remove = SKAction.removeFromParent()
         projectile.run(.sequence([moveLeft, remove]))
     }
@@ -143,7 +143,7 @@ extension GameScene {
         if isGameOver { return }
 
         let obstacle = SKSpriteNode(color: .systemRed, size: CGSize(width: 30, height: 55))
-        let spawnPosition = CGPoint(x: size.width + 60, y: 150)
+        let spawnPosition = CGPoint(x: size.width + 60, y: 50)
         obstacle.position = spawnPosition
 
         obstacle.physicsBody = SKPhysicsBody(rectangleOf: obstacle.size)
