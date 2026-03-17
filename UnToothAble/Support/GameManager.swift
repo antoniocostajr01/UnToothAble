@@ -14,6 +14,8 @@ class GameManager {
     
     var nextScene: GameDelegator = .home
     
+    var gameSpeed: CGFloat = 250
+    
     func goToScene(_ scene: GameDelegator) {
         currentScene = scene
     }

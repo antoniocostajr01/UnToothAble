@@ -8,11 +8,12 @@
 import CoreGraphics
 
 enum GameConstants {
-
+    
     // MARK: - Physics
     enum Physics {
         static let gravityY: CGFloat = -30
-        static let scenarioSpeed: CGFloat = 250
+        static let scenarioSpeed: CGFloat = 600
+        static let speedIncrement: CGFloat = 100
     }
 
     // MARK: - Physics categories (bitmasks)
