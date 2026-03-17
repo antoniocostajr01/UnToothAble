@@ -90,8 +90,8 @@ extension GameScene {
 
         if isGameOver { return }
 
-        let minY = GameConstants.Layout.groundBaseY + 20
-        let maxY = size.height - (node.frame.size.height / 2)
+        let minY = GameConstants.Layout.groundBaseY + (GameConstants.Layout.groundHeight / 2) + (node.frame.size.height / 2)
+        let maxY = size.height - (node.frame.size.height)
 
         let moveDown = SKAction.moveTo(y: minY, duration: 2.0)
         moveDown.timingMode = .easeInEaseOut
@@ -100,7 +100,7 @@ extension GameScene {
         node.run(.repeatForever(.sequence([moveDown, moveUp])))
         
         let moveIn = SKAction.moveTo(x: size.width - 200, duration: 1.0)
-        let waitToShoot = SKAction.wait(forDuration: 1.0)
+        let waitToShoot = SKAction.wait(forDuration: 1.5, withRange: 1.0)
         let shoot = SKAction.run { [weak self] in
             self?.spawnBossProjectile(from: node.position)
         }
