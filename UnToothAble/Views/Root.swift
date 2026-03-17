@@ -14,22 +14,17 @@ struct Root: View {
     var body: some View {
         ZStack {
             
-            if gameManager.currentScene == .home {
+           switch gameManager.currentScene {
+            case .home:
                 Home()
-            }
-            
-            if gameManager.currentScene == .settings {
+            case .settings:
                 Settings()
-            }
-            
-            if gameManager.currentScene == .game || gameManager.currentScene == .gameOver {
+            case .game:
                 Game()
             case .shop:
-                Shop()
-            }
-            
-            if gameManager.currentScene == .gameOver {
-                GameOver(
+               Shop()
+            case .gameOver:
+               GameOver(
                     score: gameManager.lastScore,
                     onRestart: gameManager.restartRun,
                     onContinue: gameManager.continueRun
