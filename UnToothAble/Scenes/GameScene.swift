@@ -13,13 +13,13 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     private var scrollSystem: ScrollSystem!
     var playerEntity: Entity?
 
-    // Nós da cena (internal para GameScene+Setup)
+    // Nós da cena
     let worldNode = SKNode()
     let player = SKSpriteNode(imageNamed: GameConstants.Assets.playerImage)
     private let background = ScrollingBackground()
     private weak var lastHitObstacleNode: SKNode?
 
-    // Estado (internal onde necessário para extensão)
+    // Estado
     var groundPieces: [SKSpriteNode] = []
     var isGameOver = false
     private var canJump = true
@@ -86,7 +86,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         guard !isGameOver else { return }
         jump()
     }
-    
+
     // MARK: - Game loop
     override func update(_ currentTime: TimeInterval) {
         var deltaTime = currentTime - lastUpdateTime
@@ -118,7 +118,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
 
         background.update(deltaTime: deltaTime, scenarioSpeed: GameConstants.Physics.scenarioSpeed)
     }
-    
+
     private func syncPlayerPositionFromNode() {
         guard let entity = playerEntity,
               var pos = ecsWorld.component(PositionComponent.self, for: entity) else { return }
@@ -155,12 +155,13 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             .filter { entity in
                 (ecsWorld.component(PositionComponent.self, for: entity)?.x ?? 0) < -100
             }
+
         for entity in toRemove {
             ecsWorld.component(SpriteComponent.self, for: entity)?.node.removeFromParent()
             ecsWorld.removeEntity(entity)
         }
     }
-    
+
     private func obstacleNode(from contact: SKPhysicsContact) -> SKNode? {
         if contact.bodyA.categoryBitMask == GameConstants.PhysicsCategory.obstacle {
             return contact.bodyA.node
@@ -183,7 +184,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             ecsWorld.removeEntity(entity)
         }
     }
-    
+
     func continueRun() {
         removeAllObstaclesAheadOfPlayer()
         lastHitObstacleNode = nil
@@ -200,8 +201,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         gameOverOverlay.hide(from: self)
         lastUpdateTime = 0
     }
-    
-    // MARK: - Colisões (delegadas ao CollisionHandler)
+
+    // MARK: - Colisões
     func didBegin(_ contact: SKPhysicsContact) {
         switch CollisionHandler.handle(contact) {
         case .groundTouched:
@@ -215,7 +216,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             break
         }
     }
-    
+
     private func gameOver(hitObstacleNode: SKNode?) {
         guard !isGameOver else { return }
 
@@ -224,12 +225,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
 
         removeAction(forKey: "spawnObstacles")
         LocalScoreStore.shared.saveIfNeeded(score: score)
-        gameHUD.update(score: score, bestScore: LocalScoreStore.shared.bestScore)
-        gameOverOverlay.show(in: self)
-        
-//         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-//               GameCenterManager.shared.showLeaderboard()
-//           }
+        onGameOver?(score)
     }
 
     func restartGame() {
