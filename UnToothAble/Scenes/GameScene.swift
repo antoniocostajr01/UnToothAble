@@ -22,7 +22,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     var groundPieces: [SKSpriteNode] = []
     var isGameOver = false
     private var canJump = true
-    private var lastUpdateTime: TimeInterval = 0
+    var lastUpdateTime: TimeInterval = 0
 
     // Pontuação
     private var score: Int = 0
@@ -171,7 +171,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         gameOverOverlay.show(in: self)
     }
 
-    private func restartGame() {
+    func restartGame() {
         isGameOver = false
         canJump = true
         score = 0
