@@ -224,10 +224,15 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
 
         removeAction(forKey: "spawnObstacles")
         LocalScoreStore.shared.saveIfNeeded(score: score)
-        onGameOver?(score)
+        gameHUD.update(score: score, bestScore: LocalScoreStore.shared.bestScore)
+        gameOverOverlay.show(in: self)
+        
+//         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+//               GameCenterManager.shared.showLeaderboard()
+//           }
     }
-    
-     func restartGame() {
+
+    func restartGame() {
         isGameOver = false
         canJump = true
         score = 0
