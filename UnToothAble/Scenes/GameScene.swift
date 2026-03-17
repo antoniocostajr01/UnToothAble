@@ -59,6 +59,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         gameHUD.addTo(scene: self)
         gameHUD.update(score: score, bestScore: LocalScoreStore.shared.bestScore)
         startSpawningObstacles()
+//        startSpawningAerialObstacles()
+        startSpawningBoss()
     }
 
     private func prepareForReuse() {
@@ -224,6 +226,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         lastHitObstacleNode = hitObstacleNode
 
         removeAction(forKey: "spawnObstacles")
+//        removeAction(forKey: "spawnAerialObstacles")
+        removeAction(forKey: "spawnBoss")
         LocalScoreStore.shared.saveIfNeeded(score: score)
         onGameOver?(score)
     }
@@ -250,5 +254,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         setupPlayer()
         gameHUD.update(score: score, bestScore: LocalScoreStore.shared.bestScore)
         startSpawningObstacles()
+//        startSpawningAerialObstacles()
+        startSpawningBoss()
     }
 }

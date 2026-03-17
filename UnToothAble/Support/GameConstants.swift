@@ -20,17 +20,20 @@ enum GameConstants {
         static let player: UInt32 = 1 << 0
         static let ground: UInt32 = 1 << 1
         static let obstacle: UInt32 = 1 << 2
+        static let projectile: UInt32 = 1 << 3
     }
 
     // MARK: - Layout
     enum Layout {
         static let groundHeight: CGFloat = 60
-        static let groundBaseY: CGFloat = 120
+        static let groundBaseY: CGFloat = 30
     }
 
     // MARK: - Asset names
     enum Assets {
         static let playerImage = "Tooth"
         static let backgrounds = ["Background1", "Background2", "Background3"]
+        static let bossFrame1 = "FairyFrame1"
+        static let bossFrame2 = "FairyFrame2"
     }
 }
