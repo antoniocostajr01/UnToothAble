@@ -37,8 +37,10 @@ extension GameScene {
     }
 
     func setupPlayer() {
+        fixedPlayerX = size.width * 0.25
+
         player.size = CGSize(width: 70, height: 70)
-        player.position = CGPoint(x: size.width * 0.25, y: 180)
+        player.position = CGPoint(x: fixedPlayerX, y: 180)
 
         player.physicsBody = SKPhysicsBody(circleOfRadius: 25)
         player.physicsBody?.allowsRotation = false
