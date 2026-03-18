@@ -13,13 +13,22 @@ struct Root: View {
     
     var body: some View {
         ZStack {
-            switch gameManager.currentScene {
+            
+           switch gameManager.currentScene {
             case .home:
                 Home()
             case .settings:
                 Settings()
             case .game:
                 Game()
+            case .shop:
+               Shop()
+            case .gameOver:
+               GameOver(
+                    score: gameManager.lastScore,
+                    onRestart: gameManager.restartRun,
+                    onContinue: gameManager.continueRun
+                )
             }
         }
         .environment(gameManager)

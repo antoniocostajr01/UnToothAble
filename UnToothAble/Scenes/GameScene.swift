@@ -27,7 +27,15 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     var isGameOver = false
     private var canJump = true
     private var lastUpdateTime: TimeInterval = 0
+  // Nós da cena
     
+    private weak var lastHitObstacleNode: SKNode?
+
+    // Estado
+
+    var fixedPlayerX: CGFloat = 0
+    private var hasPerformedInitialSetup = false
+
     // Pontuação
     private var score: Int = 0
     private var scoreAccumulator: TimeInterval = 0
@@ -35,19 +43,27 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     // Responsabilidades extraídas
     private let gameHUD = GameHUD()
     private let gameOverOverlay = GameOverOverlay()
-    
+           
+    var onGameOver: ((Int) -> Void)?
+
     // MARK: - Inicialização
     override func didMove(to view: SKView) {
-        if background.parent != nil {
+      
+      if background.parent != nil {
             prepareForReuse()
         }
-        
         size = view.bounds.size
         backgroundColor = .clear
         
         physicsWorld.gravity = CGVector(dx: 0, dy: GameConstants.Physics.gravityY)
         physicsWorld.contactDelegate = self
-        
+
+        if hasPerformedInitialSetup {
+            return
+        }
+
+        hasPerformedInitialSetup = true
+
         scrollSystem = ScrollSystem(scenarioSpeed: GameConstants.Physics.scenarioSpeed)
         
         addChild(background)
@@ -69,6 +85,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         gameHUD.addTo(scene: self)
         gameHUD.update(score: score, bestScore: LocalScoreStore.shared.bestScore)
         startSpawningObstacles()
+    //    startSpawningAerialObstacles()
+        startSpawningBoss()
     }
     
     private func prepareForReuse() {
@@ -93,7 +111,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     }
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-        if isGameOver { restartGame() } else { jump() }
+        guard !isGameOver else { return }
+        jump()
     }
     
     // MARK: - Game loop
@@ -172,33 +191,84 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             .filter { entity in
                 (ecsWorld.component(PositionComponent.self, for: entity)?.x ?? 0) < -100
             }
+
         for entity in toRemove {
             ecsWorld.component(SpriteComponent.self, for: entity)?.node.removeFromParent()
             ecsWorld.removeEntity(entity)
         }
     }
+
+    private func obstacleNode(from contact: SKPhysicsContact) -> SKNode? {
+        if contact.bodyA.categoryBitMask == GameConstants.PhysicsCategory.obstacle {
+            return contact.bodyA.node
+        }
+        if contact.bodyB.categoryBitMask == GameConstants.PhysicsCategory.obstacle {
+            return contact.bodyB.node
+        }
+        return nil
+    }
+
+    private func removeAllObstaclesAheadOfPlayer() {
+        let entitiesToRemove = ecsWorld.entities(with: [ObstacleComponent.self, SpriteComponent.self, PositionComponent.self])
+            .filter { entity in
+                guard let pos = ecsWorld.component(PositionComponent.self, for: entity) else { return false }
+                return pos.x >= fixedPlayerX - 40
+            }
+
+        for entity in entitiesToRemove {
+            ecsWorld.component(SpriteComponent.self, for: entity)?.node.removeFromParent()
+            ecsWorld.removeEntity(entity)
+        }
+    }
+
+    func continueRun() {
+        removeAllObstaclesAheadOfPlayer()
+        lastHitObstacleNode = nil
+
+        removeAction(forKey: "spawnObstacles")
+        removeAction(forKey: "spawnBoss")
+        startSpawningObstacles()
+        startSpawningBoss()
+
+        player.position.x = fixedPlayerX
+        player.physicsBody?.velocity = .zero
+        player.physicsBody?.applyImpulse(CGVector(dx: 0, dy: 80))
+
+        canJump = false
+        isGameOver = false
+        gameOverOverlay.hide(from: self)
+        lastUpdateTime = 0
+    }
     
-    // MARK: - Colisões (delegadas ao CollisionHandler)
+    // MARK: - Colisões
     func didBegin(_ contact: SKPhysicsContact) {
         switch CollisionHandler.handle(contact) {
         case .groundTouched:
             canJump = true
+
         case .obstacleHit:
-            gameOver()
+            let obstacleNode = obstacleNode(from: contact)
+            gameOver(hitObstacleNode: obstacleNode)
+
         case .none:
             break
         }
     }
-    
-    private func gameOver() {
+
+    private func gameOver(hitObstacleNode: SKNode?) {
+        guard !isGameOver else { return }
+
         isGameOver = true
+        lastHitObstacleNode = hitObstacleNode
+
         removeAction(forKey: "spawnObstacles")
+//        removeAction(forKey: "spawnAerialObstacles")
+        removeAction(forKey: "spawnBoss")
         LocalScoreStore.shared.saveIfNeeded(score: score)
-        gameHUD.update(score: score, bestScore: LocalScoreStore.shared.bestScore)
-        gameOverOverlay.show(in: self)
+        onGameOver?(score)
     }
-    
-    private func restartGame() {
+
+    func restartGame() {
         isGameOver = false
         canJump = true
         score = 0
@@ -221,5 +291,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         setupPlayer()
         gameHUD.update(score: score, bestScore: LocalScoreStore.shared.bestScore)
         startSpawningObstacles()
+//        startSpawningAerialObstacles()
+        startSpawningBoss()
     }
 }
