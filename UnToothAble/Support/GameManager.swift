@@ -15,6 +15,11 @@ import Observation
 class GameManager {
 
     var currentScene: GameDelegator = .home
+    
+    var nextScene: GameDelegator = .home
+    
+    var gameSpeed: CGFloat = 250
+    
     var lastScore: Int = 0
 
     var restartRun: () -> Void = {}
