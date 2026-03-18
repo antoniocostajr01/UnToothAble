@@ -22,6 +22,7 @@ enum GameConstants {
         static let ground: UInt32 = 1 << 1
         static let obstacle: UInt32 = 1 << 2
         static let projectile: UInt32 = 1 << 3
+        static let particle: UInt32 = 1 << 4
     }
 
     // MARK: - Layout
