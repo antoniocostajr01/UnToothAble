@@ -47,50 +47,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
            
     var onGameOver: ((Int) -> Void)?
 
-    // MARK: - Inicialização
-//    override func didMove(to view: SKView) {
-//      
-//      if background.parent != nil {
-//            prepareForReuse()
-//        }
-//        size = view.bounds.size
-//        backgroundColor = .clear
-//        
-//        physicsWorld.gravity = CGVector(dx: 0, dy: GameConstants.Physics.gravityY)
-//        physicsWorld.contactDelegate = self
-//
-//        if hasPerformedInitialSetup {
-//            return
-//        }
-//
-//        hasPerformedInitialSetup = true
-//
-//        scrollSystem = ScrollSystem(scenarioSpeed: GameConstants.Physics.scenarioSpeed)
-//        
-//        addChild(background)
-//        background.setup(in: size)
-//        
-//        background.onLevelUp = { [weak self] in
-//            guard let self = self else { return }
-//            self.currentScenarioSpeed += GameConstants.Physics.speedIncrement
-//            print("🚀 LEVEL UP! Nova velocidade: \(self.currentScenarioSpeed)")
-//        }
-//        
-//        scrollSystem = ScrollSystem(scenarioSpeed: GameConstants.Physics.scenarioSpeed)
-//        
-//        addChild(worldNode)
-//        
-//        setupGround()
-//        setupPhysicsGround()
-//        setupPlayer()
-//        gameHUD.addTo(scene: self)
-//        gameHUD.update(score: score, bestScore: LocalScoreStore.shared.bestScore)
-//        startSpawningObstacles()
-//    //    startSpawningAerialObstacles()
-//        startSpawningBoss()
-//    }
-
-    
     override func didMove(to view: SKView) {
         size = view.bounds.size
         backgroundColor = .clear
@@ -101,9 +57,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         if hasPerformedInitialSetup {
             return
         }
-
-        
-        ///OI
         
         hasPerformedInitialSetup = true
 
@@ -126,11 +79,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         gameHUD.addTo(scene: self)
         gameHUD.update(score: score, bestScore: LocalScoreStore.shared.bestScore)
         startSpawningObstacles()
-<<<<<<< feat/JetPack
-        startSpawningAerialObstacles()
-=======
-    //    startSpawningAerialObstacles()
->>>>>>> dev
+        //MARK: Aqui ativa os ibstáculos aéreos (amarelos)
+//        startSpawningAerialObstacles()
         startSpawningBoss()
     }
     
@@ -147,18 +97,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         score = 0
         scoreAccumulator = 0
     }
-<<<<<<< feat/JetPack
 
-=======
-    
-    private func jump() {
-        if !canJump || isGameOver { return }
-        canJump = false
-        player.physicsBody?.velocity = CGVector(dx: 0, dy: 0)
-        player.physicsBody?.applyImpulse(CGVector(dx: 0, dy: 120))
-    }
-    
->>>>>>> dev
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         guard !isGameOver else { return }
         
@@ -170,8 +109,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             jetPack.currentFuel -= jetPack.ignitionCost
             
             if let body = player.physicsBody {
-                // Ao invés do pulo, damos um "empurrão de velocidade" inicial garantido.
-                // Assim um simples tap dá um "voozinho baixo", e manter pressionado continua subindo.
                 let tapVelocityBurst: CGFloat = 700.0
                 if body.velocity.dy < tapVelocityBurst {
                     body.velocity.dy = tapVelocityBurst
@@ -218,10 +155,14 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             
             // 4. Atualiza os obstáculos no ECS usando a velocidade atualizada
             scrollSystem.update(world: ecsWorld, deltaTime: deltaTime, scenarioSpeed: currentScenarioSpeed)
-            
+
+            jetPackSystem.update(world: ecsWorld, deltaTime: deltaTime)
+
             // 5. Aplica as novas posições (ECS -> SpriteKit)
             syncPositionToNodes()
-            
+
+            updateFuelBarVisuals()
+
             // 6. Move o chão usando a mesma velocidade
             moveGroundOnly(deltaTime: deltaTime, currentSpeed: currentSpeed)
             
@@ -231,32 +172,18 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             
             // 8. Move o background (e checa o Level Up)
             background.update(deltaTime: deltaTime, scenarioSpeed: currentSpeed)
-        }
-<<<<<<< feat/JetPack
 
-        syncPlayerPositionFromNode()
-        scrollSystem.update(world: ecsWorld, deltaTime: deltaTime)
-        jetPackSystem.update(world: ecsWorld, deltaTime: deltaTime)
-        syncPositionToNodes()
-        updateFuelBarVisuals()
+            player.position.x = fixedPlayerX
 
-        player.position.x = fixedPlayerX
-
-        let roofLimit = size.height - (player.size.height / 2)
-        if player.position.y > roofLimit {
-            player.position.y = roofLimit
-            if let dy = player.physicsBody?.velocity.dy, dy > 0 {
-                player.physicsBody?.velocity.dy = 0
+            let roofLimit = size.height - (player.size.height / 2)
+            if player.position.y > roofLimit {
+                player.position.y = roofLimit
+                if let dy = player.physicsBody?.velocity.dy, dy > 0 {
+                    player.physicsBody?.velocity.dy = 0
+                }
             }
-        }
-        
-        player.physicsBody?.velocity.dx = 0
 
-        moveGroundOnly(deltaTime: deltaTime)
-        recycleGround()
-        removeOffscreenObstacles()
-
-        background.update(deltaTime: deltaTime, scenarioSpeed: GameConstants.Physics.scenarioSpeed)
+            player.physicsBody?.velocity.dx = 0
     }
 
     private func updateFuelBarVisuals() {
@@ -298,9 +225,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         drop.run(SKAction.sequence([group, remove]))
     }
 
-=======
-    
->>>>>>> dev
     private func syncPlayerPositionFromNode() {
         guard let entity = playerEntity,
               var pos = ecsWorld.component(PositionComponent.self, for: entity) else { return }
@@ -317,7 +241,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     }
     
     private func moveGroundOnly(deltaTime: TimeInterval, currentSpeed: CGFloat) {
-        // Usa a velocidade injetada em vez da constante
         let moveX = currentSpeed * CGFloat(deltaTime)
         for ground in groundPieces {
             ground.position.x -= moveX
@@ -448,7 +371,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         setupPlayer()
         gameHUD.update(score: score, bestScore: LocalScoreStore.shared.bestScore)
         startSpawningObstacles()
-        startSpawningAerialObstacles()
+        //MARK: Aqui reseta os obstáculos aéreos (amarelos)
+//        startSpawningAerialObstacles()
         startSpawningBoss()
     }
 }
