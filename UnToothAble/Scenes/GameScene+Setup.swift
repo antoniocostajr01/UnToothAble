@@ -167,9 +167,20 @@ extension GameScene {
     }
     
     func startSpawningAerialObstacles() {
-        let spawn = SKAction.run { [weak self] in self?.spawnAerialObstacle() }
-        let wait = SKAction.wait(forDuration: 6.0)
-        run(.repeatForever(.sequence([spawn, wait])), withKey: "spawnAerialObstacles")
+        spawnAerialObstacleLoop()
+    }
+    
+    private func spawnAerialObstacleLoop() {
+        if isGameOver { return }
+        
+        let randomWait = TimeInterval.random(in: 3.0...8.0)
+        let wait = SKAction.wait(forDuration: randomWait)
+        let spawn = SKAction.run { [weak self] in 
+            self?.spawnAerialObstacle()
+            self?.spawnAerialObstacleLoop()
+        }
+        
+        run(.sequence([wait, spawn]), withKey: "spawnAerialObstacles")
     }
     
     func spawnAerialObstacle() {
@@ -180,8 +191,9 @@ extension GameScene {
         let minY = GameConstants.Layout.groundBaseY + 80
         let maxY = size.height - 50
         let randomY = CGFloat.random(in: minY...maxY)
+        let randomX = size.width + CGFloat.random(in: 100...600)
 
-        let spawnPosition = CGPoint(x: size.width + 300, y: randomY)
+        let spawnPosition = CGPoint(x: randomX, y: randomY)
         aerialObstacle.position = spawnPosition
 
         aerialObstacle.physicsBody = SKPhysicsBody(rectangleOf: aerialObstacle.size)
