@@ -3,7 +3,6 @@
 //  UnToothAble
 //
 //  Orquestra a cena: ECS, loop de jogo, sincronização SpriteKit ↔ ECS. Setup e HUD/colisões/game over estão em tipos dedicados.
-//
 import SpriteKit
 
 class GameScene: SKScene, SKPhysicsContactDelegate {
@@ -17,22 +16,18 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     private var currentScenarioSpeed: CGFloat = GameConstants.Physics.scenarioSpeed
     
-    // Nós da cena (internal para GameScene+Setup)
+    // Nós da cena
     let worldNode = SKNode()
     let player = SKSpriteNode(imageNamed: GameConstants.Assets.playerImage)
     private let background = ScrollingBackground()
     
-    // Estado (internal onde necessário para extensão)
+    // Estado
     var groundPieces: [SKSpriteNode] = []
     var isGameOver = false
     private var canJump = true
     var lastUpdateTime: TimeInterval = 0
-  // Nós da cena
     
     private weak var lastHitObstacleNode: SKNode?
-
-    // Estado
-
     var fixedPlayerX: CGFloat = 0
     private var hasPerformedInitialSetup = false
 
@@ -40,56 +35,19 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     private var score: Int = 0
     private var scoreAccumulator: TimeInterval = 0
     
+    // Spawn por tempo fixo
+    private var obstacleSpawnAccumulator: TimeInterval = 0
+    private let obstacleSpawnInterval: TimeInterval = 1.8
+    
+    private var bossSpawnAccumulator: TimeInterval = 0
+    private let bossSpawnInterval: TimeInterval = 10.0
+    
     // Responsabilidades extraídas
     private let gameHUD = GameHUD()
     private let gameOverOverlay = GameOverOverlay()
            
     var onGameOver: ((Int) -> Void)?
 
-    // MARK: - Inicialização
-//    override func didMove(to view: SKView) {
-//      
-//      if background.parent != nil {
-//            prepareForReuse()
-//        }
-//        size = view.bounds.size
-//        backgroundColor = .clear
-//        
-//        physicsWorld.gravity = CGVector(dx: 0, dy: GameConstants.Physics.gravityY)
-//        physicsWorld.contactDelegate = self
-//
-//        if hasPerformedInitialSetup {
-//            return
-//        }
-//
-//        hasPerformedInitialSetup = true
-//
-//        scrollSystem = ScrollSystem(scenarioSpeed: GameConstants.Physics.scenarioSpeed)
-//        
-//        addChild(background)
-//        background.setup(in: size)
-//        
-//        background.onLevelUp = { [weak self] in
-//            guard let self = self else { return }
-//            self.currentScenarioSpeed += GameConstants.Physics.speedIncrement
-//            print("🚀 LEVEL UP! Nova velocidade: \(self.currentScenarioSpeed)")
-//        }
-//        
-//        scrollSystem = ScrollSystem(scenarioSpeed: GameConstants.Physics.scenarioSpeed)
-//        
-//        addChild(worldNode)
-//        
-//        setupGround()
-//        setupPhysicsGround()
-//        setupPlayer()
-//        gameHUD.addTo(scene: self)
-//        gameHUD.update(score: score, bestScore: LocalScoreStore.shared.bestScore)
-//        startSpawningObstacles()
-//    //    startSpawningAerialObstacles()
-//        startSpawningBoss()
-//    }
-
-    
     override func didMove(to view: SKView) {
         size = view.bounds.size
         backgroundColor = .clear
@@ -101,9 +59,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             return
         }
 
-        
-        ///OI
-        
         hasPerformedInitialSetup = true
 
         scrollSystem = ScrollSystem(scenarioSpeed: GameConstants.Physics.scenarioSpeed)
@@ -124,9 +79,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         setupPlayer()
         gameHUD.addTo(scene: self)
         gameHUD.update(score: score, bestScore: LocalScoreStore.shared.bestScore)
-        startSpawningObstacles()
-    //    startSpawningAerialObstacles()
-        startSpawningBoss()
+        
+        obstacleSpawnAccumulator = 0
+        bossSpawnAccumulator = 0
     }
     
     private func prepareForReuse() {
@@ -141,12 +96,14 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         canJump = true
         score = 0
         scoreAccumulator = 0
+        obstacleSpawnAccumulator = 0
+        bossSpawnAccumulator = 0
     }
     
     private func jump() {
         if !canJump || isGameOver { return }
         canJump = false
-        player.physicsBody?.velocity = CGVector(dx: 0, dy: 0)
+        player.physicsBody?.velocity = .zero
         player.physicsBody?.applyImpulse(CGVector(dx: 0, dy: 120))
     }
     
@@ -157,42 +114,54 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     // MARK: - Game loop
     override func update(_ currentTime: TimeInterval) {
-            var deltaTime = currentTime - lastUpdateTime
-            lastUpdateTime = currentTime
-            if deltaTime > 1 { deltaTime = 1.0 / 60.0 }
-            
-            guard !isGameOver else { return }
-            
-            // 1. Atualiza a pontuação
-            scoreAccumulator += deltaTime
-            if scoreAccumulator >= 1 {
-                score += 1
-                scoreAccumulator = 0
-                gameHUD.update(score: score, bestScore: LocalScoreStore.shared.bestScore)
-            }
-            
-            // 2. Pega a velocidade centralizada e controlada pela própria cena
-            let currentSpeed = self.currentScenarioSpeed
-            
-            // 3. Sincroniza a posição (SpriteKit -> ECS)
-            syncPlayerPositionFromNode()
-            
-            // 4. Atualiza os obstáculos no ECS usando a velocidade atualizada
-            scrollSystem.update(world: ecsWorld, deltaTime: deltaTime, scenarioSpeed: currentScenarioSpeed)
-            
-            // 5. Aplica as novas posições (ECS -> SpriteKit)
-            syncPositionToNodes()
-            
-            // 6. Move o chão usando a mesma velocidade
-            moveGroundOnly(deltaTime: deltaTime, currentSpeed: currentSpeed)
-            
-            // 7. Limpezas e reciclagens
-            recycleGround()
-            removeOffscreenObstacles()
-            
-            // 8. Move o background (e checa o Level Up)
-            background.update(deltaTime: deltaTime, scenarioSpeed: currentSpeed)
+        var deltaTime = currentTime - lastUpdateTime
+        lastUpdateTime = currentTime
+        
+        if deltaTime > 1 {
+            deltaTime = 1.0 / 60.0
         }
+        
+        guard !isGameOver else { return }
+        
+        updateObstacleSpawn(deltaTime: deltaTime)
+        updateBossSpawn(deltaTime: deltaTime)
+        
+        scoreAccumulator += deltaTime
+        if scoreAccumulator >= 1 {
+            score += 1
+            scoreAccumulator = 0
+            gameHUD.update(score: score, bestScore: LocalScoreStore.shared.bestScore)
+        }
+        
+        let currentSpeed = self.currentScenarioSpeed
+        
+        syncPlayerPositionFromNode()
+        scrollSystem.update(world: ecsWorld, deltaTime: deltaTime, scenarioSpeed: currentSpeed)
+        syncPositionToNodes()
+        moveGroundOnly(deltaTime: deltaTime, currentSpeed: currentSpeed)
+        recycleGround()
+        removeOffscreenObstacles()
+        background.update(deltaTime: deltaTime, scenarioSpeed: currentSpeed)
+    }
+    
+    // MARK: - Spawn timers
+    private func updateObstacleSpawn(deltaTime: TimeInterval) {
+        obstacleSpawnAccumulator += deltaTime
+        
+        while obstacleSpawnAccumulator >= obstacleSpawnInterval {
+            obstacleSpawnAccumulator -= obstacleSpawnInterval
+            spawnObstacle()
+        }
+    }
+    
+    private func updateBossSpawn(deltaTime: TimeInterval) {
+        bossSpawnAccumulator += deltaTime
+        
+        while bossSpawnAccumulator >= bossSpawnInterval {
+            bossSpawnAccumulator -= bossSpawnInterval
+            setupBoss()
+        }
+    }
     
     private func syncPlayerPositionFromNode() {
         guard let entity = playerEntity,
@@ -210,7 +179,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     }
     
     private func moveGroundOnly(deltaTime: TimeInterval, currentSpeed: CGFloat) {
-        // Usa a velocidade injetada em vez da constante
         let moveX = currentSpeed * CGFloat(deltaTime)
         for ground in groundPieces {
             ground.position.x -= moveX
@@ -265,10 +233,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         removeAllObstaclesAheadOfPlayer()
         lastHitObstacleNode = nil
 
-        removeAction(forKey: "spawnObstacles")
-        removeAction(forKey: "spawnBoss")
-        startSpawningObstacles()
-        startSpawningBoss()
+        obstacleSpawnAccumulator = 0
+        bossSpawnAccumulator = 0
 
         player.position.x = fixedPlayerX
         player.physicsBody?.velocity = .zero
@@ -301,9 +267,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         isGameOver = true
         lastHitObstacleNode = hitObstacleNode
 
-        removeAction(forKey: "spawnObstacles")
-//        removeAction(forKey: "spawnAerialObstacles")
-        removeAction(forKey: "spawnBoss")
         LocalScoreStore.shared.saveIfNeeded(score: score)
         onGameOver?(score)
     }
@@ -314,6 +277,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         score = 0
         currentScenarioSpeed = GameConstants.Physics.scenarioSpeed
         scoreAccumulator = 0
+        obstacleSpawnAccumulator = 0
+        bossSpawnAccumulator = 0
         
         gameOverOverlay.hide(from: self)
         worldNode.removeAllChildren()
@@ -330,8 +295,5 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         setupPhysicsGround()
         setupPlayer()
         gameHUD.update(score: score, bestScore: LocalScoreStore.shared.bestScore)
-        startSpawningObstacles()
-//        startSpawningAerialObstacles()
-        startSpawningBoss()
     }
 }
