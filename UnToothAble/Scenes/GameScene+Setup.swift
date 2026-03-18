@@ -59,6 +59,12 @@ extension GameScene {
     }
 
     // MARK: - Boss
+//    func startSpawningBoss() {
+//        let wait = SKAction.wait(forDuration: 10.0)
+//        let spawn = SKAction.run { [weak self] in self?.setupBoss() }
+//
+//        run(.sequence([wait, spawn]), withKey: "spawnBoss")
+//    }
 
     func setupBoss() {
         if isGameOver { return }
@@ -155,6 +161,11 @@ extension GameScene {
     }
 
     // MARK: - Obstacles
+//    func startSpawningObstacles() {
+//        let spawn = SKAction.run { [weak self] in self?.spawnObstacle() }
+//        let wait = SKAction.wait(forDuration: 1.8)
+//        run(.repeatForever(.sequence([spawn, wait])), withKey: "spawnObstacles")
+//    }
 
     func spawnObstacle() {
         if isGameOver { return }

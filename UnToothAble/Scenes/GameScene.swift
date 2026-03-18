@@ -82,10 +82,10 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         obstacleSpawnAccumulator = 0
         bossSpawnAccumulator = 0
-        startSpawningObstacles()
-        //MARK: Aqui ativa os ibstáculos aéreos (amarelos)
-//        startSpawningAerialObstacles()
-        startSpawningBoss()
+//        startSpawningObstacles()
+//        //MARK: Aqui ativa os ibstáculos aéreos (amarelos)
+////        startSpawningAerialObstacles()
+//        startSpawningBoss()
     }
     
     private func prepareForReuse() {
@@ -104,13 +104,13 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         bossSpawnAccumulator = 0
     }
     
-    private func jump() {
-        if !canJump || isGameOver { return }
-        canJump = false
-        player.physicsBody?.velocity = .zero
-        player.physicsBody?.applyImpulse(CGVector(dx: 0, dy: 120))
-    }
-    
+//    private func jump() {
+//        if !canJump || isGameOver { return }
+//        canJump = false
+//        player.physicsBody?.velocity = .zero
+//        player.physicsBody?.applyImpulse(CGVector(dx: 0, dy: 120))
+//    }
+//    
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         guard !isGameOver else { return }
         
@@ -393,9 +393,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         setupPhysicsGround()
         setupPlayer()
         gameHUD.update(score: score, bestScore: LocalScoreStore.shared.bestScore)
-        startSpawningObstacles()
-        //MARK: Aqui reseta os obstáculos aéreos (amarelos)
-//        startSpawningAerialObstacles()
-        startSpawningBoss()
+//        startSpawningObstacles()
+//        //MARK: Aqui reseta os obstáculos aéreos (amarelos)
+////        startSpawningAerialObstacles()
+//        startSpawningBoss()
     }
 }
