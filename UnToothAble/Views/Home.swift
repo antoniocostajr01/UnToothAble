@@ -8,8 +8,9 @@
 import SwiftUI
 
 struct Home: View {
-    
     @Environment(GameManager.self) var gameManager
+    @AppStorage("hasSeenTutorial") private var hasSeenTutorial = false
+    @State private var showTutorial = false
     
     var body: some View {
         
@@ -36,6 +37,22 @@ struct Home: View {
             }
             .padding()
             .background(.white)
+            .onAppear {
+                GameCenterManager.shared.authenticate()
+                if !hasSeenTutorial {
+                    showTutorial = true
+                }
+            }
+            .fullScreenCover(isPresented: $showTutorial) {
+                Tutorial(fromSettings: false) {
+                    hasSeenTutorial = true
+                    showTutorial = false
+                    gameManager.goToScene(.game)
+                } onDismiss: {
+                    hasSeenTutorial = true
+                    showTutorial = false
+                }
+            }
         
         Button {
             gameManager.goToScene(.settings)
