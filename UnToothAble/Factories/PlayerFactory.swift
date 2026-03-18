@@ -16,6 +16,7 @@ enum PlayerFactory {
         let entity = world.createEntity()
         world.addComponent(PositionComponent(x: 0, y: 0), to: entity)
         world.addComponent(VelocityComponent(dx: 0, dy: 0), to: entity)
+        world.addComponent(JetPackComponent(), to: entity)
         return entity
     }
 }

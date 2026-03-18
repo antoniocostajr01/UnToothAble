@@ -11,6 +11,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     // MARK: - ECS
     var ecsWorld = World()
     private var scrollSystem: ScrollSystem!
+    private var jetPackSystem = JetPackSystem()
     var playerEntity: Entity?
     
     var gameManager: GameManager?
@@ -20,12 +21,12 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     // Nós da cena (internal para GameScene+Setup)
     let worldNode = SKNode()
     let player = SKSpriteNode(imageNamed: GameConstants.Assets.playerFrame1)
+    var fuelBar: SKShapeNode!
     private let background = ScrollingBackground()
     
     // Estado (internal onde necessário para extensão)
     var groundPieces: [SKSpriteNode] = []
     var isGameOver = false
-    private var canJump = true
     var lastUpdateTime: TimeInterval = 0
   // Nós da cena
     
@@ -46,50 +47,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
            
     var onGameOver: ((Int) -> Void)?
 
-    // MARK: - Inicialização
-//    override func didMove(to view: SKView) {
-//      
-//      if background.parent != nil {
-//            prepareForReuse()
-//        }
-//        size = view.bounds.size
-//        backgroundColor = .clear
-//        
-//        physicsWorld.gravity = CGVector(dx: 0, dy: GameConstants.Physics.gravityY)
-//        physicsWorld.contactDelegate = self
-//
-//        if hasPerformedInitialSetup {
-//            return
-//        }
-//
-//        hasPerformedInitialSetup = true
-//
-//        scrollSystem = ScrollSystem(scenarioSpeed: GameConstants.Physics.scenarioSpeed)
-//        
-//        addChild(background)
-//        background.setup(in: size)
-//        
-//        background.onLevelUp = { [weak self] in
-//            guard let self = self else { return }
-//            self.currentScenarioSpeed += GameConstants.Physics.speedIncrement
-//            print("🚀 LEVEL UP! Nova velocidade: \(self.currentScenarioSpeed)")
-//        }
-//        
-//        scrollSystem = ScrollSystem(scenarioSpeed: GameConstants.Physics.scenarioSpeed)
-//        
-//        addChild(worldNode)
-//        
-//        setupGround()
-//        setupPhysicsGround()
-//        setupPlayer()
-//        gameHUD.addTo(scene: self)
-//        gameHUD.update(score: score, bestScore: LocalScoreStore.shared.bestScore)
-//        startSpawningObstacles()
-//    //    startSpawningAerialObstacles()
-//        startSpawningBoss()
-//    }
-
-    
     override func didMove(to view: SKView) {
         size = view.bounds.size
         backgroundColor = .clear
@@ -100,9 +57,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         if hasPerformedInitialSetup {
             return
         }
-
-        
-        ///OI
         
         hasPerformedInitialSetup = true
 
@@ -125,7 +79,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         gameHUD.addTo(scene: self)
         gameHUD.update(score: score, bestScore: LocalScoreStore.shared.bestScore)
         startSpawningObstacles()
-    //    startSpawningAerialObstacles()
+        //MARK: Aqui ativa os ibstáculos aéreos (amarelos)
+//        startSpawningAerialObstacles()
         startSpawningBoss()
     }
     
@@ -136,23 +91,44 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         groundPieces.removeAll()
         ecsWorld = World()
         scrollSystem = ScrollSystem(scenarioSpeed: GameConstants.Physics.scenarioSpeed)
+        jetPackSystem = JetPackSystem()
         playerEntity = nil
         isGameOver = false
-        canJump = true
         score = 0
         scoreAccumulator = 0
     }
-    
-    private func jump() {
-        if !canJump || isGameOver { return }
-        canJump = false
-        player.physicsBody?.velocity = CGVector(dx: 0, dy: 0)
-        player.physicsBody?.applyImpulse(CGVector(dx: 0, dy: 120))
-    }
-    
+
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         guard !isGameOver else { return }
-        jump()
+        
+        guard let entity = playerEntity,
+              var jetPack = ecsWorld.component(JetPackComponent.self, for: entity) else { return }
+              
+        if jetPack.currentFuel >= jetPack.ignitionCost {
+            jetPack.isThrusting = true
+            jetPack.currentFuel -= jetPack.ignitionCost
+            
+            if let body = player.physicsBody {
+                let tapVelocityBurst: CGFloat = 700.0
+                if body.velocity.dy < tapVelocityBurst {
+                    body.velocity.dy = tapVelocityBurst
+                }
+            }
+            
+            ecsWorld.addComponent(jetPack, to: entity)
+        }
+    }
+
+    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
+        guard let entity = playerEntity,
+              var jetPack = ecsWorld.component(JetPackComponent.self, for: entity) else { return }
+        
+        jetPack.isThrusting = false
+        ecsWorld.addComponent(jetPack, to: entity)
+    }
+
+    override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
+        touchesEnded(touches, with: event)
     }
     
     // MARK: - Game loop
@@ -179,10 +155,14 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             
             // 4. Atualiza os obstáculos no ECS usando a velocidade atualizada
             scrollSystem.update(world: ecsWorld, deltaTime: deltaTime, scenarioSpeed: currentScenarioSpeed)
-            
+
+            jetPackSystem.update(world: ecsWorld, deltaTime: deltaTime)
+
             // 5. Aplica as novas posições (ECS -> SpriteKit)
             syncPositionToNodes()
-            
+
+            updateFuelBarVisuals()
+
             // 6. Move o chão usando a mesma velocidade
             moveGroundOnly(deltaTime: deltaTime, currentSpeed: currentSpeed)
             
@@ -192,8 +172,59 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             
             // 8. Move o background (e checa o Level Up)
             background.update(deltaTime: deltaTime, scenarioSpeed: currentSpeed)
+
+            player.position.x = fixedPlayerX
+
+            let roofLimit = size.height - (player.size.height / 2)
+            if player.position.y > roofLimit {
+                player.position.y = roofLimit
+                if let dy = player.physicsBody?.velocity.dy, dy > 0 {
+                    player.physicsBody?.velocity.dy = 0
+                }
+            }
+
+            player.physicsBody?.velocity.dx = 0
+    }
+
+    private func updateFuelBarVisuals() {
+        guard let entity = playerEntity,
+              let jetPack = ecsWorld.component(JetPackComponent.self, for: entity) else { return }
+              
+        let fuelRatio = max(jetPack.currentFuel / jetPack.maxFuel, 0.0)
+        fuelBar?.xScale = fuelRatio
+        fuelBar?.fillColor = fuelRatio > 0.3 ? .systemGreen : .systemRed
+        
+        if jetPack.isThrusting && jetPack.currentFuel > 0 {
+            spawnLiquidParticle()
         }
-    
+    }
+
+    private func spawnLiquidParticle() {
+        let dropRadius = CGFloat.random(in: 3...6)
+        let drop = SKShapeNode(circleOfRadius: dropRadius)
+        drop.fillColor = UIColor(red: 1.0, green: 0.96, blue: 0.85, alpha: 1.0)
+        drop.strokeColor = .clear
+
+        let jetpackOffset = CGPoint(x: -player.size.width * 0.2, y: -player.size.height * 0.4)
+        let spawnPosition = self.convert(jetpackOffset, from: player)
+        drop.position = spawnPosition
+
+        drop.physicsBody = SKPhysicsBody(circleOfRadius: dropRadius)
+        drop.physicsBody?.isDynamic = true
+        drop.physicsBody?.categoryBitMask = GameConstants.PhysicsCategory.particle
+        drop.physicsBody?.collisionBitMask = GameConstants.PhysicsCategory.ground
+        drop.physicsBody?.contactTestBitMask = GameConstants.PhysicsCategory.ground
+
+        worldNode.addChild(drop)
+
+        let shrink = SKAction.scale(to: 0.1, duration: 0.6)
+        let fade = SKAction.fadeOut(withDuration: 0.6)
+        let group = SKAction.group([shrink, fade])
+        let remove = SKAction.removeFromParent()
+
+        drop.run(SKAction.sequence([group, remove]))
+    }
+
     private func syncPlayerPositionFromNode() {
         guard let entity = playerEntity,
               var pos = ecsWorld.component(PositionComponent.self, for: entity) else { return }
@@ -210,7 +241,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     }
     
     private func moveGroundOnly(deltaTime: TimeInterval, currentSpeed: CGFloat) {
-        // Usa a velocidade injetada em vez da constante
         let moveX = currentSpeed * CGFloat(deltaTime)
         for ground in groundPieces {
             ground.position.x -= moveX
@@ -274,7 +304,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         player.physicsBody?.velocity = .zero
         player.physicsBody?.applyImpulse(CGVector(dx: 0, dy: 80))
 
-        canJump = false
         isGameOver = false
         gameOverOverlay.hide(from: self)
         lastUpdateTime = 0
@@ -282,9 +311,21 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     // MARK: - Colisões
     func didBegin(_ contact: SKPhysicsContact) {
+        
+        let collision = contact.bodyA.categoryBitMask | contact.bodyB.categoryBitMask
+
+        if collision == (GameConstants.PhysicsCategory.particle | GameConstants.PhysicsCategory.ground) {
+             let particleNode = contact.bodyA.categoryBitMask == GameConstants.PhysicsCategory.particle ? contact.bodyA.node : contact.bodyB.node
+             particleNode?.removeFromParent()
+             return
+        }
+
         switch CollisionHandler.handle(contact) {
         case .groundTouched:
-            canJump = true
+            if let entity = playerEntity, var jetPack = ecsWorld.component(JetPackComponent.self, for: entity) {
+                jetPack.currentFuel = jetPack.maxFuel
+                ecsWorld.addComponent(jetPack, to: entity)
+            }
 
         case .obstacleHit:
             let obstacleNode = obstacleNode(from: contact)
@@ -302,7 +343,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         lastHitObstacleNode = hitObstacleNode
 
         removeAction(forKey: "spawnObstacles")
-//        removeAction(forKey: "spawnAerialObstacles")
+        removeAction(forKey: "spawnAerialObstacles")
         removeAction(forKey: "spawnBoss")
         LocalScoreStore.shared.saveIfNeeded(score: score)
         onGameOver?(score)
@@ -310,7 +351,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
 
     func restartGame() {
         isGameOver = false
-        canJump = true
         score = 0
         currentScenarioSpeed = GameConstants.Physics.scenarioSpeed
         scoreAccumulator = 0
@@ -331,6 +371,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         setupPlayer()
         gameHUD.update(score: score, bestScore: LocalScoreStore.shared.bestScore)
         startSpawningObstacles()
+        //MARK: Aqui reseta os obstáculos aéreos (amarelos)
 //        startSpawningAerialObstacles()
         startSpawningBoss()
     }
