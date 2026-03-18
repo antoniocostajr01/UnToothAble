@@ -101,6 +101,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             return
         }
 
+        
+        ///OI
+        
         hasPerformedInitialSetup = true
 
         scrollSystem = ScrollSystem(scenarioSpeed: GameConstants.Physics.scenarioSpeed)
