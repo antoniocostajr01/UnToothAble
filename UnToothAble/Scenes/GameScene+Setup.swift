@@ -44,8 +44,8 @@ extension GameScene {
         ]
         
         let runAnimation = SKAction.animate(with: playerTextures, timePerFrame: 0.1)
-        player.run(.repeatForever(runAnimation))
-        
+        player.run(.repeatForever(runAnimation), withKey: "playerRun")
+
         player.physicsBody = SKPhysicsBody(circleOfRadius: 25)
         player.physicsBody?.allowsRotation = false
         player.physicsBody?.restitution = 0

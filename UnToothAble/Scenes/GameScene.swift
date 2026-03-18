@@ -11,6 +11,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     var ecsWorld = World()
     private var scrollSystem: ScrollSystem!
     private var jetPackSystem = JetPackSystem()
+    private var animationSystem = AnimationSystem()
     var playerEntity: Entity?
     
     var gameManager: GameManager?
@@ -170,6 +171,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         syncPlayerPositionFromNode()
         scrollSystem.update(world: ecsWorld, deltaTime: deltaTime, scenarioSpeed: currentSpeed)
         jetPackSystem.update(world: ecsWorld, deltaTime: deltaTime)
+        animationSystem.update(world: ecsWorld, deltaTime: deltaTime)
         syncPositionToNodes()
         updateFuelBarVisuals()
         moveGroundOnly(deltaTime: deltaTime, currentSpeed: currentSpeed)
