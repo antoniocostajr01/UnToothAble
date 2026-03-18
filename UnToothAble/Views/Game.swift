@@ -44,17 +44,21 @@ struct Game: View {
 
             scene.onGameOver = { score in
                 gameManager.lastScore = score
+                gameManager.refreshRewardedAvailability()
                 showPauseMenu = false
                 gameManager.goToScene(.gameOver)
             }
 
             gameManager.restartRun = {
+                gameManager.resetReviveForNewRun()
                 scene.restartGame()
             }
 
             gameManager.continueRun = {
                 scene.continueRun()
             }
+
+            gameManager.refreshRewardedAvailability()
         }
     }
 
@@ -77,12 +81,14 @@ struct Game: View {
                 menuButton(title: "Restart", icon: "arrow.clockwise", color: .systemBlue) {
                     showPauseMenu = false
                     gameManager.gameScene.resumeGame()
+                    gameManager.resetReviveForNewRun()
                     gameManager.gameScene.restartGame()
                 }
 
                 menuButton(title: "Home", icon: "house.fill", color: .systemOrange) {
                     showPauseMenu = false
                     gameManager.gameScene.resumeGame()
+                    gameManager.resetReviveForNewRun()
                     gameManager.goToScene(.home)
                 }
             }

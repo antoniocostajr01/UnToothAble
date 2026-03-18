@@ -25,6 +25,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     private var canJump = true
     var lastUpdateTime: TimeInterval = 0
     var fixedPlayerX: CGFloat = 0
+    private var hasPerformedInitialSetup = false
 
     // Pontuação
     private var score: Int = 0
@@ -37,15 +38,17 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
 
     // MARK: - Inicialização
     override func didMove(to view: SKView) {
-        if background.parent != nil {
-            prepareForReuse()
-        }
-
         size = view.bounds.size
         backgroundColor = .clear
 
         physicsWorld.gravity = CGVector(dx: 0, dy: GameConstants.Physics.gravityY)
         physicsWorld.contactDelegate = self
+
+        if hasPerformedInitialSetup {
+            return
+        }
+
+        hasPerformedInitialSetup = true
 
         scrollSystem = ScrollSystem(scenarioSpeed: GameConstants.Physics.scenarioSpeed)
 
@@ -59,10 +62,10 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         gameHUD.addTo(scene: self)
         gameHUD.update(score: score, bestScore: LocalScoreStore.shared.bestScore)
         startSpawningObstacles()
-//        startSpawningAerialObstacles()
+    //    startSpawningAerialObstacles()
         startSpawningBoss()
     }
-
+    
     private func prepareForReuse() {
         removeAllActions()
         removeAllChildren()
@@ -192,7 +195,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         lastHitObstacleNode = nil
 
         removeAction(forKey: "spawnObstacles")
+        removeAction(forKey: "spawnBoss")
         startSpawningObstacles()
+        startSpawningBoss()
 
         player.position.x = fixedPlayerX
         player.physicsBody?.velocity = .zero
@@ -203,7 +208,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         gameOverOverlay.hide(from: self)
         lastUpdateTime = 0
     }
-
+    
     // MARK: - Colisões
     func didBegin(_ contact: SKPhysicsContact) {
         switch CollisionHandler.handle(contact) {
