@@ -89,10 +89,12 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             jetPack.currentFuel -= jetPack.ignitionCost
             
             if let body = player.physicsBody {
-                if body.velocity.dy < 0 {
-                    body.velocity.dy = 0
+                // Ao invés do pulo, damos um "empurrão de velocidade" inicial garantido.
+                // Assim um simples tap dá um "voozinho baixo", e manter pressionado continua subindo.
+                let tapVelocityBurst: CGFloat = 700.0
+                if body.velocity.dy < tapVelocityBurst {
+                    body.velocity.dy = tapVelocityBurst
                 }
-                body.applyImpulse(CGVector(dx: 0.0, dy: jetPack.jumpImpulse * body.mass))
             }
             
             ecsWorld.addComponent(jetPack, to: entity)

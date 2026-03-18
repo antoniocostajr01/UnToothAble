@@ -21,7 +21,7 @@ final class JetPackSystem {
                 if let body = sprite.node.physicsBody {
                     body.applyForce(CGVector(dx: 0.0, dy: jetPack.hoverForce * body.mass))
                     
-                    let maxUpwardSpeed: CGFloat = 450.0
+                    let maxUpwardSpeed: CGFloat = 600.0
                     if body.velocity.dy > maxUpwardSpeed {
                         body.velocity.dy = maxUpwardSpeed
                     }
