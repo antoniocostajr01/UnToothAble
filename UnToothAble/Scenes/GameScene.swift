@@ -104,7 +104,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         if !canJump || isGameOver { return }
         canJump = false
         player.physicsBody?.velocity = .zero
-        player.physicsBody?.applyImpulse(CGVector(dx: 0, dy: 120))
+        player.physicsBody?.applyImpulse(CGVector(dx: 0, dy: 120)) 
     }
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
