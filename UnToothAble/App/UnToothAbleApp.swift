@@ -6,9 +6,18 @@
 //
 
 import SwiftUI
+import GoogleMobileAds
 
 @main
 struct UnToothAbleApp: App {
+
+    init() {
+        MobileAds.shared.start()
+        Task { @MainActor in
+            RewardedAdManager.shared.preloadAd()
+        }
+    }
+
     var body: some Scene {
         WindowGroup {
             Root()
