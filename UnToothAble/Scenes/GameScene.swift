@@ -26,7 +26,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     var groundPieces: [SKSpriteNode] = []
     var isGameOver = false
     private var canJump = true
-    private var lastUpdateTime: TimeInterval = 0
+    var lastUpdateTime: TimeInterval = 0
   // Nós da cena
     
     private weak var lastHitObstacleNode: SKNode?
@@ -47,14 +47,53 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     var onGameOver: ((Int) -> Void)?
 
     // MARK: - Inicialização
+//    override func didMove(to view: SKView) {
+//      
+//      if background.parent != nil {
+//            prepareForReuse()
+//        }
+//        size = view.bounds.size
+//        backgroundColor = .clear
+//        
+//        physicsWorld.gravity = CGVector(dx: 0, dy: GameConstants.Physics.gravityY)
+//        physicsWorld.contactDelegate = self
+//
+//        if hasPerformedInitialSetup {
+//            return
+//        }
+//
+//        hasPerformedInitialSetup = true
+//
+//        scrollSystem = ScrollSystem(scenarioSpeed: GameConstants.Physics.scenarioSpeed)
+//        
+//        addChild(background)
+//        background.setup(in: size)
+//        
+//        background.onLevelUp = { [weak self] in
+//            guard let self = self else { return }
+//            self.currentScenarioSpeed += GameConstants.Physics.speedIncrement
+//            print("🚀 LEVEL UP! Nova velocidade: \(self.currentScenarioSpeed)")
+//        }
+//        
+//        scrollSystem = ScrollSystem(scenarioSpeed: GameConstants.Physics.scenarioSpeed)
+//        
+//        addChild(worldNode)
+//        
+//        setupGround()
+//        setupPhysicsGround()
+//        setupPlayer()
+//        gameHUD.addTo(scene: self)
+//        gameHUD.update(score: score, bestScore: LocalScoreStore.shared.bestScore)
+//        startSpawningObstacles()
+//    //    startSpawningAerialObstacles()
+//        startSpawningBoss()
+//    }
+
+    
     override func didMove(to view: SKView) {
-      
-      if background.parent != nil {
-            prepareForReuse()
-        }
         size = view.bounds.size
         backgroundColor = .clear
-        
+
         physicsWorld.gravity = CGVector(dx: 0, dy: GameConstants.Physics.gravityY)
         physicsWorld.contactDelegate = self
 
@@ -65,20 +104,18 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         hasPerformedInitialSetup = true
 
         scrollSystem = ScrollSystem(scenarioSpeed: GameConstants.Physics.scenarioSpeed)
-        
+
         addChild(background)
         background.setup(in: size)
-        
+
         background.onLevelUp = { [weak self] in
             guard let self = self else { return }
             self.currentScenarioSpeed += GameConstants.Physics.speedIncrement
             print("🚀 LEVEL UP! Nova velocidade: \(self.currentScenarioSpeed)")
         }
-        
-        scrollSystem = ScrollSystem(scenarioSpeed: GameConstants.Physics.scenarioSpeed)
-        
+
         addChild(worldNode)
-        
+
         setupGround()
         setupPhysicsGround()
         setupPlayer()
