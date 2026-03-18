@@ -34,7 +34,18 @@ extension GameScene {
 
         player.size = CGSize(width: 70, height: 70)
         player.position = CGPoint(x: fixedPlayerX, y: 180)
-
+        
+        let playerTextures: [SKTexture] = [
+            SKTexture(imageNamed: GameConstants.Assets.playerFrame1),
+            SKTexture(imageNamed: GameConstants.Assets.playerFrame2),
+            SKTexture(imageNamed: GameConstants.Assets.playerFrame3),
+            SKTexture(imageNamed: GameConstants.Assets.playerFrame4),
+            SKTexture(imageNamed: GameConstants.Assets.playerFrame5)
+        ]
+        
+        let runAnimation = SKAction.animate(with: playerTextures, timePerFrame: 0.1)
+        player.run(.repeatForever(runAnimation))
+        
         player.physicsBody = SKPhysicsBody(circleOfRadius: 25)
         player.physicsBody?.allowsRotation = false
         player.physicsBody?.restitution = 0
@@ -56,6 +67,9 @@ extension GameScene {
         ecsWorld.addComponent(PositionComponent(x: player.position.x, y: player.position.y), to: entity)
         ecsWorld.addComponent(SpriteComponent(node: player), to: entity)
         playerEntity = entity
+        
+        
+        
     }
 
     // MARK: - Boss
