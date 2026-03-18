@@ -32,8 +32,11 @@ enum GameConstants {
 
     // MARK: - Asset names
     enum Assets {
-        static let playerImage = "Tooth"
-        static let backgrounds = ["Background1", "Background2", "Background3"]
+        static let playerFrame1 = "Tooth1"
+        static let playerFrame2 = "Tooth2"
+        static let playerFrame3 = "Tooth3"
+        static let playerFrame4 = "Tooth4"
+        static let playerFrame5 = "Tooth5"
         static let bossFrame1 = "FairyFrame1"
         static let bossFrame2 = "FairyFrame2"
     }

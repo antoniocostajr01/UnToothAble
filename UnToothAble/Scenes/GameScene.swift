@@ -19,7 +19,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     // Nós da cena (internal para GameScene+Setup)
     let worldNode = SKNode()
-    let player = SKSpriteNode(imageNamed: GameConstants.Assets.playerImage)
+    let player = SKSpriteNode(imageNamed: GameConstants.Assets.playerFrame1)
     private let background = ScrollingBackground()
     
     // Estado (internal onde necessário para extensão)
