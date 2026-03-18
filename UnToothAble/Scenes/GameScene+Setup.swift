@@ -53,12 +53,6 @@ extension GameScene {
 
         addChild(player)
 
-        jetpack = SKShapeNode(rectOf: CGSize(width: 14, height: 18))
-        jetpack.fillColor = .gray
-        jetpack.strokeColor = .clear
-        jetpack.position = CGPoint(x: -25, y: -20)
-        player.addChild(jetpack)
-
         fuelBar = SKShapeNode(rectOf: CGSize(width: 40, height: 6))
         fuelBar.fillColor = .systemGreen
         fuelBar.strokeColor = .clear
@@ -172,33 +166,33 @@ extension GameScene {
         ecsWorld.addComponent(SpriteComponent(node: obstacle), to: entity)
     }
     
-//    func startSpawningAerialObstacles() {
-//        let spawn = SKAction.run { [weak self] in self?.spawnAerialObstacle() }
-//        let wait = SKAction.wait(forDuration: 6.0)
-//        run(.repeatForever(.sequence([spawn, wait])), withKey: "spawnAerialObstacles")
-//    }
-//    
-//    func spawnAerialObstacle() {
-//        if isGameOver { return }
-//        
-//        let aerialObstacle = SKSpriteNode(color: .systemYellow, size: CGSize(width: 20, height: 20))
-//
-//        let minY = GameConstants.Layout.groundBaseY + 80
-//        let maxY = size.height - 50
-//        let randomY = CGFloat.random(in: minY...maxY)
-//
-//        let spawnPosition = CGPoint(x: size.width + 300, y: randomY)
-//        aerialObstacle.position = spawnPosition
-//
-//        aerialObstacle.physicsBody = SKPhysicsBody(rectangleOf: aerialObstacle.size)
-//        aerialObstacle.physicsBody?.isDynamic = false
-//        aerialObstacle.physicsBody?.categoryBitMask = GameConstants.PhysicsCategory.obstacle
-//        aerialObstacle.physicsBody?.contactTestBitMask = GameConstants.PhysicsCategory.player
-//        aerialObstacle.physicsBody?.collisionBitMask = GameConstants.PhysicsCategory.player
-//        
-//        worldNode.addChild(aerialObstacle)
-//        
-//        let entity = ObstacleFactory.create(in: ecsWorld, at: spawnPosition)
-//        ecsWorld.addComponent(SpriteComponent(node: aerialObstacle), to: entity)
-//    }
+    func startSpawningAerialObstacles() {
+        let spawn = SKAction.run { [weak self] in self?.spawnAerialObstacle() }
+        let wait = SKAction.wait(forDuration: 6.0)
+        run(.repeatForever(.sequence([spawn, wait])), withKey: "spawnAerialObstacles")
+    }
+    
+    func spawnAerialObstacle() {
+        if isGameOver { return }
+        
+        let aerialObstacle = SKSpriteNode(color: .systemYellow, size: CGSize(width: 20, height: 20))
+
+        let minY = GameConstants.Layout.groundBaseY + 80
+        let maxY = size.height - 50
+        let randomY = CGFloat.random(in: minY...maxY)
+
+        let spawnPosition = CGPoint(x: size.width + 300, y: randomY)
+        aerialObstacle.position = spawnPosition
+
+        aerialObstacle.physicsBody = SKPhysicsBody(rectangleOf: aerialObstacle.size)
+        aerialObstacle.physicsBody?.isDynamic = false
+        aerialObstacle.physicsBody?.categoryBitMask = GameConstants.PhysicsCategory.obstacle
+        aerialObstacle.physicsBody?.contactTestBitMask = GameConstants.PhysicsCategory.player
+        aerialObstacle.physicsBody?.collisionBitMask = GameConstants.PhysicsCategory.player
+        
+        worldNode.addChild(aerialObstacle)
+        
+        let entity = ObstacleFactory.create(in: ecsWorld, at: spawnPosition)
+        ecsWorld.addComponent(SpriteComponent(node: aerialObstacle), to: entity)
+    }
 }

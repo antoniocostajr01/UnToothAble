@@ -17,7 +17,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     // Nós da cena
     let worldNode = SKNode()
     let player = SKSpriteNode(imageNamed: GameConstants.Assets.playerImage)
-    var jetpack: SKShapeNode!
     var fuelBar: SKShapeNode!
     private let background = ScrollingBackground()
     private weak var lastHitObstacleNode: SKNode?
@@ -61,7 +60,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         gameHUD.addTo(scene: self)
         gameHUD.update(score: score, bestScore: LocalScoreStore.shared.bestScore)
         startSpawningObstacles()
-//        startSpawningAerialObstacles()
+        startSpawningAerialObstacles()
         startSpawningBoss()
     }
 
@@ -89,8 +88,12 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             jetPack.isThrusting = true
             jetPack.currentFuel -= jetPack.ignitionCost
             
-            player.physicsBody?.velocity.dy = 0
-            player.physicsBody?.applyImpulse(CGVector(dx: 0.0, dy: jetPack.jumpImpulse))
+            if let body = player.physicsBody {
+                if body.velocity.dy < 0 {
+                    body.velocity.dy = 0
+                }
+                body.applyImpulse(CGVector(dx: 0.0, dy: jetPack.jumpImpulse * body.mass))
+            }
             
             ecsWorld.addComponent(jetPack, to: entity)
         }
@@ -133,6 +136,15 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         updateFuelBarVisuals()
 
         player.position.x = fixedPlayerX
+
+        let roofLimit = size.height - (player.size.height / 2)
+        if player.position.y > roofLimit {
+            player.position.y = roofLimit
+            if let dy = player.physicsBody?.velocity.dy, dy > 0 {
+                player.physicsBody?.velocity.dy = 0
+            }
+        }
+        
         player.physicsBody?.velocity.dx = 0
 
         moveGroundOnly(deltaTime: deltaTime)
@@ -160,11 +172,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         let drop = SKShapeNode(circleOfRadius: dropRadius)
         drop.fillColor = UIColor(red: 1.0, green: 0.96, blue: 0.85, alpha: 1.0)
         drop.strokeColor = .clear
-        
-        guard let jetpackNode = jetpack else { return }
 
-        // Posição ajustada baseada no sprite do jogador e jetpack
-        let spawnPosition = self.convert(jetpackNode.position, from: player)
+        let jetpackOffset = CGPoint(x: -player.size.width * 0.2, y: -player.size.height * 0.4)
+        let spawnPosition = self.convert(jetpackOffset, from: player)
         drop.position = spawnPosition
 
         drop.physicsBody = SKPhysicsBody(circleOfRadius: dropRadius)
@@ -269,17 +279,15 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     func didBegin(_ contact: SKPhysicsContact) {
         
         let collision = contact.bodyA.categoryBitMask | contact.bodyB.categoryBitMask
-        
-        // Destrói partícula ao bater no chão
+
         if collision == (GameConstants.PhysicsCategory.particle | GameConstants.PhysicsCategory.ground) {
              let particleNode = contact.bodyA.categoryBitMask == GameConstants.PhysicsCategory.particle ? contact.bodyA.node : contact.bodyB.node
              particleNode?.removeFromParent()
-             return // Don't process further
+             return
         }
 
         switch CollisionHandler.handle(contact) {
         case .groundTouched:
-            // Refil the jetpack fuel
             if let entity = playerEntity, var jetPack = ecsWorld.component(JetPackComponent.self, for: entity) {
                 jetPack.currentFuel = jetPack.maxFuel
                 ecsWorld.addComponent(jetPack, to: entity)
@@ -301,7 +309,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         lastHitObstacleNode = hitObstacleNode
 
         removeAction(forKey: "spawnObstacles")
-//        removeAction(forKey: "spawnAerialObstacles")
+        removeAction(forKey: "spawnAerialObstacles")
         removeAction(forKey: "spawnBoss")
         LocalScoreStore.shared.saveIfNeeded(score: score)
         onGameOver?(score)
@@ -328,7 +336,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         setupPlayer()
         gameHUD.update(score: score, bestScore: LocalScoreStore.shared.bestScore)
         startSpawningObstacles()
-//        startSpawningAerialObstacles()
+        startSpawningAerialObstacles()
         startSpawningBoss()
     }
 }

@@ -18,7 +18,14 @@ final class JetPackSystem {
                   let sprite = world.component(SpriteComponent.self, for: entity) else { continue }
 
             if jetPack.isThrusting && jetPack.currentFuel > 0 {
-                sprite.node.physicsBody?.applyForce(CGVector(dx: 0.0, dy: jetPack.hoverForce))
+                if let body = sprite.node.physicsBody {
+                    body.applyForce(CGVector(dx: 0.0, dy: jetPack.hoverForce * body.mass))
+                    
+                    let maxUpwardSpeed: CGFloat = 450.0
+                    if body.velocity.dy > maxUpwardSpeed {
+                        body.velocity.dy = maxUpwardSpeed
+                    }
+                }
 
                 jetPack.currentFuel -= jetPack.fuelConsumptionRate
 

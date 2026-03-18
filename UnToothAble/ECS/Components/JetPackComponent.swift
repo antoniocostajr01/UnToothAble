@@ -17,12 +17,12 @@ struct JetPackComponent {
     var currentFuel: CGFloat
     var isThrusting: Bool
 
-    init(jumpImpulse: CGFloat = 100.0,
-         hoverForce: CGFloat = 450.0,
-         maxFuel: CGFloat = 100.0,
-         fuelConsumptionRate: CGFloat = 1.5,
+    init(jumpImpulse: CGFloat = 200.0,
+         hoverForce: CGFloat = 7000.0,
+         maxFuel: CGFloat = 400.0,
+         fuelConsumptionRate: CGFloat = 1.8,
          ignitionCost: CGFloat = 5.0,
-         currentFuel: CGFloat = 100.0,
+         currentFuel: CGFloat = 400.0,
          isThrusting: Bool = false) {
 
         self.jumpImpulse = jumpImpulse
