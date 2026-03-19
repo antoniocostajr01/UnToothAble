@@ -51,22 +51,17 @@ struct CustomButton: View {
             action()
         } label: {
             
-            HStack(spacing: 4) {
+            HStack(spacing:0) {
                 
                 Image(iconImage)
                     .resizable()
                     .scaledToFit()
                     .frame(width: 24, height: 24)
                     
-                StrokedText(
-                    text: "\(label) ",
-                    font: .bangers(24),
-                    strokeColor: .black,
-                    strokeWidth: 1.8,
-                    fillColor: .white
-                )
-                .frame(width: 50)
-     
+                Text("\(label)  ")
+                    .font(.bangers(24))
+                    .foregroundStyle(.white)
+                    .customeStrok(color: .black, width: 1)
 
             }
             .frame(width: 120)
