@@ -14,73 +14,80 @@ struct Home: View {
     
     var body: some View {
         
-            VStack(spacing: 32) {
-                Text("UnToothAble")
-                    .foregroundStyle(.red)
-                    .font(.system(size: 60))
-
-                Button {
-                    gameManager.goToScene(.game)
-                } label: {
-                    Text("Play")
-                        .foregroundStyle(.black)
-                        .font(.system(size: 60))
+        ZStack{
+            VStack {
+                HStack{
+                    
+                    Spacer()
+                    
+                    
+                    CustomIcon(state: .normal, icon: .settings) {
+                        gameManager.goToScene(.settings)
+                    }
+                    
+                    CustomIcon(state: .normal, icon: .person) {
+                        GameCenterManager.shared.showLeaderboard()
+                    }
+                    
+                                    
+                    .onAppear {
+                        GameCenterManager.shared.authenticate()
+                    }
+                    
                 }
+                .padding(.trailing, 32)
+                .padding(.top, 32)
                 
-                Button {
-                    gameManager.goToScene(.shop)
-                } label: {
-                    Text("Shop")
-                        .foregroundStyle(.black)
-                        .font(.system(size: 60))
+                Spacer()
+            }
+            VStack{
+                
+                
+                
+                Image(.logo)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 400, height: 200)
+                
+                VStack(spacing: 16){
+                    
+                    CustomButton(label: "PLAy", state: .normal, icon: .play) {
+                        gameManager.goToScene(.game)
+                    }
+                    
+                    CustomButton(label: "Shop", state: .normal, icon: .tooth) {
+                        gameManager.goToScene(.game)
+                    }
                 }
             }
-            .padding()
-            .background(.white)
-            .onAppear {
-                GameCenterManager.shared.authenticate()
-                if !hasSeenTutorial {
-                    showTutorial = true
-                }
-            }
-            .fullScreenCover(isPresented: $showTutorial) {
-                Tutorial(fromSettings: false) {
-                    hasSeenTutorial = true
-                    showTutorial = false
-                    gameManager.goToScene(.game)
-                } onDismiss: {
-                    hasSeenTutorial = true
-                    showTutorial = false
-                }
-            }
-        
-        Button {
-            gameManager.goToScene(.settings)
-        } label: {
-            Image(systemName: "gear")
-                .foregroundStyle(.white)
-                .font(.system(size: 40))
         }
-        .padding(.leading, 720)
-        .padding(.trailing, 16)
         
-        
-        Button {
-            GameCenterManager.shared.showLeaderboard()
-        } label: {
-            Image(systemName: "gamecontroller.fill")
-                .foregroundStyle(.white)
-                .font(.system(size: 40))
-        }
-        .padding(.leading, 754)
-        .padding(.trailing, 16)
-        .padding(.bottom, 327)
-        
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(
+            Image(.store)
+                .resizable()
+                .scaledToFill()
+        )
+        .ignoresSafeArea()
         .onAppear {
-               GameCenterManager.shared.authenticate()
-           }
-    }
+            GameCenterManager.shared.authenticate()
+            if !hasSeenTutorial {
+                showTutorial = true
+            }
+        }
+        .fullScreenCover(isPresented: $showTutorial) {
+            Tutorial(fromSettings: false) {
+                hasSeenTutorial = true
+                showTutorial = false
+                gameManager.goToScene(.game)
+            } onDismiss: {
+                hasSeenTutorial = true
+                showTutorial = false
+            }
+        }
         
+    }
+    
 }
 
 #Preview {
