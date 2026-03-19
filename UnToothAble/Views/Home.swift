@@ -11,57 +11,66 @@ struct Home: View {
     @Environment(GameManager.self) var gameManager
     @AppStorage("hasSeenTutorial") private var hasSeenTutorial = false
     @State private var showTutorial = false
-    
+    @State private var showSettings = false
+
     var body: some View {
-        
-        ZStack{
+        ZStack {
             VStack {
-                HStack{
-                    
+                HStack {
                     Spacer()
-                    
-                    
+
                     CustomIcon(state: .normal, icon: .settings) {
-                        gameManager.goToScene(.settings)
+                        withAnimation(.spring(response: 0.3, dampingFraction: 0.75)) {
+                            showSettings = true
+                        }
                     }
-                    
+
                     CustomIcon(state: .normal, icon: .person) {
                         GameCenterManager.shared.showLeaderboard()
                     }
-                    
-                                    
                     .onAppear {
                         GameCenterManager.shared.authenticate()
                     }
-                    
                 }
                 .padding(.trailing, 32)
                 .padding(.top, 32)
-                
+
                 Spacer()
             }
-            VStack{
-                
-                
-                
+
+            VStack {
                 Image(.logo)
                     .resizable()
                     .scaledToFit()
                     .frame(width: 400, height: 200)
-                
-                VStack(spacing: 16){
-                    
-                    CustomButton(label: "PLAY", state: .normal, icon: .play) {
+
+                VStack(spacing: 16) {
+                    CustomButton(label: " PLAY ", state: .normal, icon: .play) {
                         gameManager.goToScene(.game)
                     }
-                    
-                    CustomButton(label: "Shop", state: .normal, icon: .tooth) {
+
+                    CustomButton(label: " SHOP ", state: .normal, icon: .tooth) {
                         gameManager.goToScene(.game)
                     }
                 }
             }
+
+            if showSettings {
+                Color.black.opacity(0.45)
+                    .ignoresSafeArea()
+                    .onTapGesture {
+                        withAnimation(.spring(response: 0.3, dampingFraction: 0.75)) {
+                            showSettings = false
+                        }
+                    }
+                    .transition(.opacity)
+
+                Settings(isPresented: $showSettings)
+                    .frame(width: 382, height: 264)
+                    .transition(.scale(scale: 0.85).combined(with: .opacity))
+                    .zIndex(1)
+            }
         }
-        
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(
             Image(.store)
@@ -85,9 +94,7 @@ struct Home: View {
                 showTutorial = false
             }
         }
-        
     }
-    
 }
 
 #Preview {
