@@ -67,23 +67,12 @@ extension GameScene {
         ecsWorld.addComponent(PositionComponent(x: player.position.x, y: player.position.y), to: entity)
         ecsWorld.addComponent(SpriteComponent(node: player), to: entity)
         playerEntity = entity
-        
-        
-        
     }
-
-    // MARK: - Boss
-//    func startSpawningBoss() {
-//        let wait = SKAction.wait(forDuration: 10.0)
-//        let spawn = SKAction.run { [weak self] in self?.setupBoss() }
-//
-//        run(.sequence([wait, spawn]), withKey: "spawnBoss")
-//    }
 
     func setupBoss() {
         if isGameOver { return }
 
-        let startPos = CGPoint(x: size.width + 250, y: size.height * 0.75)
+        let startPos = CGPoint(x: size.width + 250, y: size.height * 0.70)
 
         let boss = SKSpriteNode(imageNamed: GameConstants.Assets.bossFrame1)
         boss.name = "boss"
@@ -106,13 +95,14 @@ extension GameScene {
     private func startBossBehavior(for node: SKNode) {
         if isGameOver { return }
 
-        let minY = GameConstants.Layout.groundBaseY + (GameConstants.Layout.groundHeight / 2) + (node.frame.size.height / 2)
-        let maxY = size.height - node.frame.size.height
+        let limitBottom = GameConstants.Layout.groundBaseY + GameConstants.Layout.groundHeight + 0.0
 
-        let moveDown = SKAction.moveTo(y: minY, duration: 2.0)
+        let limitTop = size.height - 150.0
+
+        let moveDown = SKAction.moveTo(y: limitBottom, duration: 2.0)
         moveDown.timingMode = .easeInEaseOut
 
-        let moveUp = SKAction.moveTo(y: maxY, duration: 2.0)
+        let moveUp = SKAction.moveTo(y: limitTop, duration: 2.0)
         moveUp.timingMode = .easeInEaseOut
 
         node.run(.repeatForever(.sequence([moveDown, moveUp])), withKey: "bossVerticalMovement")
@@ -128,7 +118,7 @@ extension GameScene {
 
         let attackPhase = SKAction.repeat(.sequence([waitToShoot, shoot]), count: Int.random(in: 3...6))
         
-        let moveOut = SKAction.moveTo(x: size.width + 250, duration: 1.0)
+        let moveOut = SKAction.moveTo(x: size.width + 200, duration: 1.0)
         moveOut.timingMode = .easeIn
         
         let cleanup = SKAction.run { [weak self, weak node] in
@@ -174,13 +164,6 @@ extension GameScene {
         }
     }
 
-    // MARK: - Obstacles
-//    func startSpawningObstacles() {
-//        let spawn = SKAction.run { [weak self] in self?.spawnObstacle() }
-//        let wait = SKAction.wait(forDuration: 1.8)
-//        run(.repeatForever(.sequence([spawn, wait])), withKey: "spawnObstacles")
-//    }
-
     func spawnObstacle() {
         if isGameOver { return }
 
@@ -203,23 +186,23 @@ extension GameScene {
     func startSpawningAerialObstacles() {
         spawnAerialObstacleLoop()
     }
-    
+
     private func spawnAerialObstacleLoop() {
         if isGameOver { return }
-        
+
         let randomWait = TimeInterval.random(in: 3.0...8.0)
         let wait = SKAction.wait(forDuration: randomWait)
-        let spawn = SKAction.run { [weak self] in 
+        let spawn = SKAction.run { [weak self] in
             self?.spawnAerialObstacle()
             self?.spawnAerialObstacleLoop()
         }
-        
+
         run(.sequence([wait, spawn]), withKey: "spawnAerialObstacles")
     }
-    
+
     func spawnAerialObstacle() {
         if isGameOver { return }
-        
+
         let aerialObstacle = SKSpriteNode(color: .systemYellow, size: CGSize(width: 20, height: 20))
 
         let minY = GameConstants.Layout.groundBaseY + 80
@@ -229,15 +212,15 @@ extension GameScene {
 
         let spawnPosition = CGPoint(x: randomX, y: randomY)
         aerialObstacle.position = spawnPosition
-
+        
         aerialObstacle.physicsBody = SKPhysicsBody(rectangleOf: aerialObstacle.size)
         aerialObstacle.physicsBody?.isDynamic = false
         aerialObstacle.physicsBody?.categoryBitMask = GameConstants.PhysicsCategory.obstacle
         aerialObstacle.physicsBody?.contactTestBitMask = GameConstants.PhysicsCategory.player
         aerialObstacle.physicsBody?.collisionBitMask = GameConstants.PhysicsCategory.player
-        
+
         worldNode.addChild(aerialObstacle)
-        
+
         let entity = ObstacleFactory.create(in: ecsWorld, at: spawnPosition)
         ecsWorld.addComponent(SpriteComponent(node: aerialObstacle), to: entity)
     }
