@@ -40,8 +40,10 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     // Spawn por tempo fixo
     private var obstacleSpawnAccumulator: TimeInterval = 0
-    private let obstacleSpawnInterval: TimeInterval = 1.8
-    
+    private var currentObstacleSpawnInterval: TimeInterval = 4.0
+    private let minObstacleGap: TimeInterval = 4.5
+    private let maxObstacleGap: TimeInterval = 8.0
+
     private var bossSpawnAccumulator: TimeInterval = 0
     private let bossSpawnInterval: TimeInterval = 10.0
     
@@ -88,10 +90,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         obstacleSpawnAccumulator = 0
         bossSpawnAccumulator = 0
-//        startSpawningObstacles()
-//        //MARK: Aqui ativa os ibstáculos aéreos (amarelos)
-////        startSpawningAerialObstacles()
-//        startSpawningBoss()
     }
     
     private func prepareForReuse() {
@@ -109,14 +107,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         obstacleSpawnAccumulator = 0
         bossSpawnAccumulator = 0
     }
-    
-//    private func jump() {
-//        if !canJump || isGameOver { return }
-//        canJump = false
-//        player.physicsBody?.velocity = .zero
-//        player.physicsBody?.applyImpulse(CGVector(dx: 0, dy: 120))
-//    }
-//    
+
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         guard !isGameOver else { return }
         
@@ -200,10 +191,13 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     // MARK: - Spawn timers
     private func updateObstacleSpawn(deltaTime: TimeInterval) {
         obstacleSpawnAccumulator += deltaTime
-        
-        while obstacleSpawnAccumulator >= obstacleSpawnInterval {
-            obstacleSpawnAccumulator -= obstacleSpawnInterval
+
+        if obstacleSpawnAccumulator >= currentObstacleSpawnInterval {
+            obstacleSpawnAccumulator = 0
+
             spawnObstacle()
+
+            currentObstacleSpawnInterval = TimeInterval.random(in: minObstacleGap...maxObstacleGap)
         }
     }
     
@@ -231,9 +225,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
 
     private func spawnLiquidParticle() {
         let dropRadius = CGFloat.random(in: 3...6)
-        let drop = SKShapeNode(circleOfRadius: dropRadius)
-        drop.fillColor = UIColor(red: 1.0, green: 0.96, blue: 0.85, alpha: 1.0)
-        drop.strokeColor = .clear
+        let drop = SKSpriteNode(imageNamed: GameConstants.Assets.jetpackparticles)
+
+        drop.size = CGSize(width: 25, height: 25)
 
         let jetpackOffset = CGPoint(x: -28, y: 0)
         let spawnPosition = self.convert(jetpackOffset, from: player)
@@ -401,9 +395,5 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         setupPhysicsGround()
         setupPlayer()
         gameHUD.update(score: score, bestScore: LocalScoreStore.shared.bestScore)
-//        startSpawningObstacles()
-//        //MARK: Aqui reseta os obstáculos aéreos (amarelos)
-////        startSpawningAerialObstacles()
-//        startSpawningBoss()
     }
 }

@@ -7,7 +7,7 @@ extension GameScene {
         let groundY = GameConstants.Layout.groundBaseY
 
         for i in 0..<2 {
-            let ground = SKSpriteNode(color: .black, size: CGSize(width: size.width, height: groundHeight))
+            let ground = SKSpriteNode(color: .clear, size: CGSize(width: size.width, height: groundHeight))
             ground.position = CGPoint(x: size.width / 2 + CGFloat(i) * size.width, y: groundY)
             worldNode.addChild(ground)
             groundPieces.append(ground)
@@ -134,10 +134,9 @@ extension GameScene {
     private func spawnBossProjectile(from position: CGPoint) {
         if isGameOver { return }
         
-        let projectile = SKShapeNode(circleOfRadius: 8)
-        projectile.fillColor = .green
-        projectile.strokeColor = .clear
+        let projectile = SKSpriteNode(imageNamed: GameConstants.Assets.fairyAttack)
         projectile.position = position
+        projectile.size = CGSize(width: 100, height: 100)
 
         projectile.physicsBody = SKPhysicsBody(circleOfRadius: 8)
         projectile.physicsBody?.isDynamic = false
@@ -163,13 +162,6 @@ extension GameScene {
             }
         }
     }
-
-    // MARK: - Obstacles
-//    func startSpawningObstacles() {
-//        let spawn = SKAction.run { [weak self] in self?.spawnObstacle() }
-//        let wait = SKAction.wait(forDuration: 1.8)
-//        run(.repeatForever(.sequence([spawn, wait])), withKey: "spawnObstacles")
-//    }
     
     private func currentObstacleTextures() -> [SKTexture] {
         switch currentPhase {
@@ -204,7 +196,7 @@ extension GameScene {
 
         obstacle.size = CGSize(width: 100, height: 100)
 
-        let spawnPosition = CGPoint(x: size.width + 60, y: 70)
+        let spawnPosition = CGPoint(x: size.width + 60, y: 90)
         obstacle.position = spawnPosition
 
         let obstacleAnimation = SKAction.animate(with: obstacleTextures, timePerFrame: 0.15)
@@ -222,6 +214,7 @@ extension GameScene {
         ecsWorld.addComponent(SpriteComponent(node: obstacle), to: entity)
     }
     
+    // MARK: Lógica para adicionar obstáculos voadores no futuro
     func startSpawningAerialObstacles() {
         spawnAerialObstacleLoop()
     }
