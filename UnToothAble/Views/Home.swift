@@ -48,9 +48,10 @@ struct Home: View {
                     CustomButton(label: " PLAY ", state: .normal, icon: .play) {
                         gameManager.goToScene(.game)
                     }
-
+                  
                     CustomButton(label: " SHOP ", state: .normal, icon: .tooth) {
                         gameManager.goToScene(.game)
+
                     }
                 }
             }
