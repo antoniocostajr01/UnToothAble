@@ -69,13 +69,13 @@ final class ScrollingBackground: SKNode {
                         // Transição L2 -> L3 (Rua)
                     case 16: bg.texture = SKTexture(imageNamed: "TransitionLevel2ToRua_1")
                     case 19:
-                        bg.texture = SKTexture(imageNamed: "Background1Rua")
+                        bg.texture = SKTexture(imageNamed: "Background1Level3")
                         onLevelUp?() // <--- AVISA QUE O LEVEL 3 COMEÇOU!
                         
                         // Transição L3 -> L4 (Esgoto)
                     case 25: bg.texture = SKTexture(imageNamed: "TransitionRuaToEsgoto_1")
                     case 28:
-                        bg.texture = SKTexture(imageNamed: "Background1Esgoto")
+                        bg.texture = SKTexture(imageNamed: "Background1Level4")
                         onLevelUp?() // <--- AVISA QUE O LEVEL 4 COMEÇOU!
                         
                     default: break
@@ -89,11 +89,11 @@ final class ScrollingBackground: SKNode {
                         
                         // Transição L2 -> L3 (Rua)
                     case 17: bg.texture = SKTexture(imageNamed: "TransitionLevel2ToRua_2")
-                    case 20: bg.texture = SKTexture(imageNamed: "Background2Rua")
+                    case 20: bg.texture = SKTexture(imageNamed: "Background2Level3")
                         
                         // Transição L3 -> L4 (Esgoto)
                     case 26: bg.texture = SKTexture(imageNamed: "TransitionRuaToEsgoto_2")
-                    case 29: bg.texture = SKTexture(imageNamed: "Background2Esgoto")
+                    case 29: bg.texture = SKTexture(imageNamed: "Background2Level4")
                         
                     default: break
                     }
@@ -102,8 +102,8 @@ final class ScrollingBackground: SKNode {
                     switch totalRecycles {
                         // Finais dos blocos (O bg_2 não usa transição, ele já entra definitivo)
                     case 9:  bg.texture = SKTexture(imageNamed: "Background3Level2")
-                    case 18: bg.texture = SKTexture(imageNamed: "Background3Rua")
-                    case 27: bg.texture = SKTexture(imageNamed: "Background3Esgoto")
+                    case 18: bg.texture = SKTexture(imageNamed: "Background3Level3")
+                    case 27: bg.texture = SKTexture(imageNamed: "Background3Level4")
                         
                     default: break
                     }

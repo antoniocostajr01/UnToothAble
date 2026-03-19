@@ -31,6 +31,7 @@ struct Root: View {
                 )
             }
         }
+        .ignoresSafeArea()
         .environment(gameManager)
     }
 }
