@@ -28,6 +28,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     var groundPieces: [SKSpriteNode] = []
     var isGameOver = false
     var lastUpdateTime: TimeInterval = 0
+    var currentPhase: Int = 1
     
     private weak var lastHitObstacleNode: SKNode?
     var fixedPlayerX: CGFloat = 0
@@ -69,10 +70,14 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
 
         background.onLevelUp = { [weak self] in
             guard let self = self else { return }
+            
             self.currentScenarioSpeed += GameConstants.Physics.speedIncrement
+            self.currentPhase = min(self.currentPhase + 1, 4)
+            
             print("🚀 LEVEL UP! Nova velocidade: \(self.currentScenarioSpeed)")
+            print("nova fase visual dos inimigos: \(self.currentPhase)")
         }
-
+        
         addChild(worldNode)
 
         setupGround()
@@ -376,6 +381,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         isGameOver = false
         score = 0
         currentScenarioSpeed = GameConstants.Physics.scenarioSpeed
+        currentPhase = 1
         scoreAccumulator = 0
         obstacleSpawnAccumulator = 0
         bossSpawnAccumulator = 0

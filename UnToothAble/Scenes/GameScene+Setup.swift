@@ -180,13 +180,45 @@ extension GameScene {
 //        let wait = SKAction.wait(forDuration: 1.8)
 //        run(.repeatForever(.sequence([spawn, wait])), withKey: "spawnObstacles")
 //    }
+    
+    private func currentObstacleTextures() -> [SKTexture] {
+        switch currentPhase {
+        case 1:
+            return [
+                SKTexture(imageNamed: GameConstants.Assets.phase1ObstacleFrame1),
+                SKTexture(imageNamed: GameConstants.Assets.phase1ObstacleFrame2)
+            ]
+        case 2:
+            return [
+                SKTexture(imageNamed: GameConstants.Assets.phase2ObstacleFrame1),
+                SKTexture(imageNamed: GameConstants.Assets.phase2ObstacleFrame2)
+            ]
+        case 3:
+            return [
+                SKTexture(imageNamed: GameConstants.Assets.phase3ObstacleFrame1),
+                SKTexture(imageNamed: GameConstants.Assets.phase3ObstacleFrame2)
+            ]
+        default:
+            return [
+                SKTexture(imageNamed: GameConstants.Assets.phase4ObstacleFrame1),
+                SKTexture(imageNamed: GameConstants.Assets.phase4ObstacleFrame2)
+            ]
+        }
+    }
 
     func spawnObstacle() {
         if isGameOver { return }
 
-        let obstacle = SKSpriteNode(color: .systemRed, size: CGSize(width: 30, height: 55))
-        let spawnPosition = CGPoint(x: size.width + 60, y: 50)
+        let obstacleTextures = currentObstacleTextures()
+        let obstacle = SKSpriteNode(texture: obstacleTextures[0])
+
+        obstacle.size = CGSize(width: 100, height: 100)
+
+        let spawnPosition = CGPoint(x: size.width + 60, y: 70)
         obstacle.position = spawnPosition
+
+        let obstacleAnimation = SKAction.animate(with: obstacleTextures, timePerFrame: 0.15)
+        obstacle.run(.repeatForever(obstacleAnimation), withKey: "obstacleAnimation")
 
         obstacle.physicsBody = SKPhysicsBody(rectangleOf: obstacle.size)
         obstacle.physicsBody?.isDynamic = false
@@ -199,7 +231,7 @@ extension GameScene {
         let entity = ObstacleFactory.create(in: ecsWorld, at: spawnPosition)
         ecsWorld.addComponent(SpriteComponent(node: obstacle), to: entity)
     }
-
+    
     func startSpawningAerialObstacles() {
         spawnAerialObstacleLoop()
     }
