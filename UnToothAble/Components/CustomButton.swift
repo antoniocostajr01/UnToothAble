@@ -61,7 +61,7 @@ struct CustomButton: View {
                 Text("\(label)  ")
                     .font(.bangers(24))
                     .foregroundStyle(.white)
-                    .customeStrok(color: .black, width: 1)
+                    .customStrok(color: .black, width: 1)
 
             }
             .frame(width: 120)
