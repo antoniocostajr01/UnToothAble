@@ -7,7 +7,7 @@ extension GameScene {
         let groundY = GameConstants.Layout.groundBaseY
 
         for i in 0..<2 {
-            let ground = SKSpriteNode(color: .black, size: CGSize(width: size.width, height: groundHeight))
+            let ground = SKSpriteNode(color: .clear, size: CGSize(width: size.width, height: groundHeight))
             ground.position = CGPoint(x: size.width / 2 + CGFloat(i) * size.width, y: groundY)
             worldNode.addChild(ground)
             groundPieces.append(ground)
@@ -144,8 +144,8 @@ extension GameScene {
     private func spawnBossProjectile(from position: CGPoint) {
         if isGameOver { return }
         
-        let projectile = SKShapeNode(circleOfRadius: 8)
-        projectile.fillColor = .green
+        let projectile = SKShapeNode(circleOfRadius: 12)
+        projectile.fillColor = .white
         projectile.strokeColor = .clear
         projectile.position = position
 
