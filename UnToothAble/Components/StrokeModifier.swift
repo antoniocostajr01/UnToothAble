@@ -42,7 +42,7 @@ struct StrokeModifier: ViewModifier {
 }
 
 extension View {
-    func customStrok(color: Color, width: CGFloat) -> some View {
+    func customStroke(color: Color, width: CGFloat) -> some View {
         self.modifier(StrokeModifier(strokeSize: width, strokeColor: color))
     }
 }
