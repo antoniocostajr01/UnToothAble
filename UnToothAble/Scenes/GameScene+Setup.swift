@@ -212,9 +212,9 @@ extension GameScene {
         let obstacleTextures = currentObstacleTextures()
         let obstacle = SKSpriteNode(texture: obstacleTextures[0])
 
-        obstacle.size = CGSize(width: 55, height: 55)
+        obstacle.size = CGSize(width: 100, height: 100)
 
-        let spawnPosition = CGPoint(x: size.width + 60, y: 50)
+        let spawnPosition = CGPoint(x: size.width + 60, y: 70)
         obstacle.position = spawnPosition
 
         let obstacleAnimation = SKAction.animate(with: obstacleTextures, timePerFrame: 0.15)
