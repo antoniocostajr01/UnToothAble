@@ -50,7 +50,7 @@ struct Home: View {
                     }
                   
                     CustomButton(label: " SHOP ", state: .normal, icon: .tooth) {
-                        gameManager.goToScene(.game)
+                        gameManager.goToScene(.shop)
 
                     }
                 }
