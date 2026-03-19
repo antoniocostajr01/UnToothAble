@@ -89,6 +89,7 @@ struct Game: View {
                     showPauseMenu = false
                     gameManager.gameScene.resumeGame()
                     gameManager.resetReviveForNewRun()
+                    gameManager.gameScene.restartGame()
                     gameManager.goToScene(.home)
                 }
             }
