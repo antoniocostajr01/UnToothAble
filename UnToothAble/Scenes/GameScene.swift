@@ -11,6 +11,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     var ecsWorld = World()
     private var scrollSystem: ScrollSystem!
     private var jetPackSystem = JetPackSystem()
+    private var animationSystem = AnimationSystem()
     var playerEntity: Entity?
     
     var gameManager: GameManager?
@@ -170,6 +171,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         syncPlayerPositionFromNode()
         scrollSystem.update(world: ecsWorld, deltaTime: deltaTime, scenarioSpeed: currentSpeed)
         jetPackSystem.update(world: ecsWorld, deltaTime: deltaTime)
+        animationSystem.update(world: ecsWorld, deltaTime: deltaTime)
         syncPositionToNodes()
         updateFuelBarVisuals()
         moveGroundOnly(deltaTime: deltaTime, currentSpeed: currentSpeed)
@@ -228,7 +230,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         drop.fillColor = UIColor(red: 1.0, green: 0.96, blue: 0.85, alpha: 1.0)
         drop.strokeColor = .clear
 
-        let jetpackOffset = CGPoint(x: -player.size.width * 0.2, y: -player.size.height * 0.4)
+        let jetpackOffset = CGPoint(x: -28, y: 0)
         let spawnPosition = self.convert(jetpackOffset, from: player)
         drop.position = spawnPosition
 
