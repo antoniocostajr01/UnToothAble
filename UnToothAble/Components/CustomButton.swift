@@ -10,7 +10,7 @@ struct CustomButton: View {
     
     var label: String
     var state: ButtonState
-    var icon: IconName
+    var icon: IconName?
     var width: CGFloat = 120
     var action: () -> Void
     
