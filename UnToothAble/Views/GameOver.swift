@@ -104,9 +104,14 @@ struct GameOver: View {
 
                 if isFirstDeathInRun {
                     Button {
-                        gameManager.resetReviveForNewRun()
-                        gameManager.gameScene.restartGame()
-                        gameManager.goToScene(.home)
+                        
+                        if !isFirstDeathInRun {
+                            gameManager.resetReviveForNewRun()
+                            gameManager.gameScene.restartGame()
+                        }
+                        
+                        
+                        gameManager.hasUsedReviveThisRun = true
                     } label: {
                         Image("x")
                             .resizable()
