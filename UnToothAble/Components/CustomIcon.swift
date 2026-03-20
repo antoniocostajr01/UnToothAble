@@ -26,7 +26,7 @@ struct CustomIcon: View {
         }
     }
     
-    private var iconImage: ImageResource {
+    private var iconImage: ImageResource? {
         switch icon {
         case .person:
             return .leaderboardIcon
@@ -39,6 +39,21 @@ struct CustomIcon: View {
             
         case .tooth:
             return .toothIcon
+
+        case .sound:
+            return .iconSound
+
+        case .restart:
+            return .iconRestart
+
+        case .home:
+            return .iconHome
+
+        case .music:
+            return .iconMusic
+            
+        case .none:
+            return nil
             
         }
     }
@@ -53,7 +68,7 @@ struct CustomIcon: View {
                     .scaledToFit()
                     .frame(width: 41, height: 41)
                 
-                Image(iconImage)
+                Image(iconImage!)
                     .resizable()
                     .scaledToFit()
                     .frame(width: 24, height: 24)

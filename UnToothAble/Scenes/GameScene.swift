@@ -49,7 +49,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     // Responsabilidades extraídas
     private let gameHUD = GameHUD()
-    private let gameOverOverlay = GameOverOverlay()
            
     var onGameOver: ((Int) -> Void)?
 
@@ -327,7 +326,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         player.physicsBody?.applyImpulse(CGVector(dx: 0, dy: 80))
 
         isGameOver = false
-        gameOverOverlay.hide(from: self)
         lastUpdateTime = 0
     }
     
@@ -380,7 +378,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         obstacleSpawnAccumulator = 0
         bossSpawnAccumulator = 0
         
-        gameOverOverlay.hide(from: self)
         worldNode.removeAllChildren()
         groundPieces.removeAll()
         player.removeFromParent()
