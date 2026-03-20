@@ -91,7 +91,7 @@ struct CustomButton: View {
             print("teste")
         }
 
-        CustomButton(label: " Continue? (Ad) ", state: .normal, icon: .none, width: 170) {
+        CustomButton(label: " Continue? (Ad) ", state: .normal, icon: Optional.none, width: 170) {
             print("continue")
         }
     }
