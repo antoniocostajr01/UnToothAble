@@ -25,18 +25,16 @@ struct Game: View {
                         gameManager.gameScene.pauseGame()
                         showPauseMenu = true
                     } label: {
-                        Image(systemName: "pause.circle.fill")
-                            .font(.system(size: 38))
-                            .foregroundStyle(.black.opacity(0.55))
+                        Image(.pauseButton)
                     }
-                    .padding(.top, 52)
-                    .padding(.trailing, 20)
+                    .padding(.top, 32)
+                    .padding(.trailing, 29)
                 }
                 Spacer()
             }
 
             if showPauseMenu {
-                pauseMenu
+                PauseMenu(showPauseMenu: $showPauseMenu)
             }
         }
         .onAppear {
@@ -60,81 +58,6 @@ struct Game: View {
 
             gameManager.refreshRewardedAvailability()
         }
-    }
-
-    private var pauseMenu: some View {
-        ZStack {
-            Color.black.opacity(0.5)
-                .ignoresSafeArea()
-
-            VStack(spacing: 16) {
-                Text("Paused")
-                    .font(.system(size: 30, weight: .heavy, design: .rounded))
-                    .foregroundStyle(.white)
-                    .padding(.bottom, 8)
-
-                menuButton(title: "Continue", icon: "play.fill", color: .systemGreen) {
-                    showPauseMenu = false
-                    gameManager.gameScene.resumeGame()
-                }
-
-                menuButton(title: "Restart", icon: "arrow.clockwise", color: .systemBlue) {
-                    showPauseMenu = false
-                    gameManager.gameScene.resumeGame()
-                    gameManager.resetReviveForNewRun()
-                    gameManager.gameScene.restartGame()
-                }
-
-                menuButton(title: "Home", icon: "house.fill", color: .systemOrange) {
-                    showPauseMenu = false
-                    gameManager.gameScene.resumeGame()
-                    gameManager.resetReviveForNewRun()
-                    gameManager.gameScene.restartGame()
-                    gameManager.goToScene(.home)
-                }
-            }
-            .padding(32)
-            .background(
-                RoundedRectangle(cornerRadius: 24)
-                    .fill(Color(white: 0.15))
-            )
-            .padding(.horizontal, 48)
-        }
-    }
-
-    @ViewBuilder
-    private func menuButton(
-        title: String,
-        icon: String,
-        color: UIColor,
-        action: @escaping () -> Void
-    ) -> some View {
-        Button(action: action) {
-            HStack(spacing: 12) {
-                Image(systemName: icon)
-                    .font(.system(size: 18, weight: .semibold))
-                Text(title)
-                    .font(.system(size: 20, weight: .bold, design: .rounded))
-            }
-            .foregroundStyle(.white)
-            .frame(maxWidth: .infinity)
-            .frame(height: 52)
-            .background(Color(color))
-            .cornerRadius(14)
-        }
-    }
-}
-
-extension GameScene {
-
-    func pauseGame() {
-        guard !isGameOver else { return }
-        isPaused = true
-    }
-
-    func resumeGame() {
-        isPaused = false
-        lastUpdateTime = 0
     }
 }
 

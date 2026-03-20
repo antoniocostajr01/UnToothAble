@@ -39,15 +39,21 @@ struct CustomIcon: View {
             
         case .tooth:
             return .toothIcon
+
+        case .sound:
+            return .iconSound
+
+        case .restart:
+            return .iconRestart
+
+        case .home:
+            return .iconHome
+
+        case .music:
+            return .iconMusic
             
         case .none:
             return nil
-            
-        case .home:
-            return .homeIcon
-            
-        case .restart:
-            return .restartIcon
             
         }
     }

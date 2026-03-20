@@ -9,6 +9,7 @@ import SwiftUI
 struct CustomButton: View {
     
     var label: String
+    
     var state: ButtonState
     var icon: IconName?
     var width: CGFloat = 120
@@ -37,12 +38,21 @@ struct CustomButton: View {
             return .settingsIcon
         case .tooth:
             return .toothIcon
+
+        case .sound:
+            return .iconSound
+
+        case .restart:
+            return .iconRestart
+
+        case .home:
+            return .iconHome
+
+        case .music:
+            return .iconMusic
         case .none:
             return nil
-        case .home:
-            return .homeIcon
-        case .restart:
-            return .restartIcon
+
         }
     }
 
@@ -86,3 +96,4 @@ struct CustomButton: View {
         }
     }
 }
+
