@@ -39,6 +39,7 @@ struct PauseMenu: View {
 
                             Button {
                                 isMusicOn.toggle()
+                                AudioManager.shared.toggleMute()
                             } label: {
                                 Image(.iconMusic)
                                     .frame(width: 24, height: 24)
