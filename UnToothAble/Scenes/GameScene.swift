@@ -40,9 +40,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     // Spawn por tempo fixo
     private var obstacleSpawnAccumulator: TimeInterval = 0
-    private var currentObstacleSpawnInterval: TimeInterval = 4.0
-    private let minObstacleGap: TimeInterval = 4.5
-    private let maxObstacleGap: TimeInterval = 8.0
+    private var currentObstacleSpawnInterval: TimeInterval = 2.0
+    private let minObstacleGap: TimeInterval = 3.5
+    private let maxObstacleGap: TimeInterval = 6.0
 
     private var bossSpawnAccumulator: TimeInterval = 0
     private let bossSpawnInterval: TimeInterval = 10.0
@@ -208,15 +208,16 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             setupBoss()
         }
     }
-  
+
     private func updateFuelBarVisuals() {
         guard let entity = playerEntity,
               let jetPack = ecsWorld.component(JetPackComponent.self, for: entity) else { return }
-              
+
         let fuelRatio = max(jetPack.currentFuel / jetPack.maxFuel, 0.0)
-        fuelBar?.xScale = fuelRatio
+
+        fuelBar?.yScale = fuelRatio
         fuelBar?.fillColor = fuelRatio > 0.3 ? .systemGreen : .systemRed
-        
+
         if jetPack.isThrusting && jetPack.currentFuel > 0 {
             spawnLiquidParticle()
         }
@@ -224,9 +225,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
 
     private func spawnLiquidParticle() {
         let dropRadius = CGFloat.random(in: 3...6)
-        let drop = SKSpriteNode(imageNamed: GameConstants.Assets.jetpackparticles)
-
-        drop.size = CGSize(width: 25, height: 25)
+        let drop = SKShapeNode(circleOfRadius: dropRadius)
+        drop.fillColor = UIColor(red: 1.0, green: 0.96, blue: 0.85, alpha: 1.0)
+        drop.strokeColor = .clear
 
         let jetpackOffset = CGPoint(x: -28, y: 0)
         let spawnPosition = self.convert(jetpackOffset, from: player)

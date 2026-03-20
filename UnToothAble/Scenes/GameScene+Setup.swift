@@ -57,10 +57,17 @@ extension GameScene {
 
         addChild(player)
 
-        fuelBar = SKShapeNode(rectOf: CGSize(width: 40, height: 6))
+        fuelBar?.removeFromParent()
+
+        let barWidth: CGFloat = 8
+        let barHeight: CGFloat = 40
+        let rect = CGRect(x: -barWidth / 2, y: 0, width: barWidth, height: barHeight)
+
+        fuelBar = SKShapeNode(rect: rect)
         fuelBar.fillColor = .systemGreen
-        fuelBar.strokeColor = .clear
-        fuelBar.position = CGPoint(x: 0, y: 40)
+        fuelBar.strokeColor = .white
+
+        fuelBar.position = CGPoint(x: -45, y: -20)
         player.addChild(fuelBar)
 
         let entity = PlayerFactory.create(in: ecsWorld)
@@ -138,7 +145,6 @@ extension GameScene {
         projectile.fillColor = .white
         projectile.strokeColor = .clear
         projectile.position = position
-        projectile.size = CGSize(width: 100, height: 100)
 
         projectile.physicsBody = SKPhysicsBody(circleOfRadius: 8)
         projectile.physicsBody?.isDynamic = false

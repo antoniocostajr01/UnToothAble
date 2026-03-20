@@ -84,7 +84,7 @@ struct PauseMenu: View {
                         }
                     }
 
-                    CustomButton(label: "RESUME", state: .normal, icon: .none) {
+                    CustomButton(label: "RESUME", state: .normal, icon: Optional.none) {
                         gameManager.gameScene.resumeGame()
                         showPauseMenu = false
                     }
