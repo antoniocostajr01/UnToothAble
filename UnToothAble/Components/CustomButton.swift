@@ -4,7 +4,6 @@
 //
 //  Created by Antonio Costa on 18/03/26.
 //
-
 import SwiftUI
 
 struct CustomButton: View {
@@ -27,6 +26,8 @@ struct CustomButton: View {
     }
     
     private var iconImage: ImageResource? {
+        guard let icon else { return nil }
+        
         switch icon {
         case .person:
             return .leaderboardIcon

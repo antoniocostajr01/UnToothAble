@@ -1,15 +1,8 @@
-//
-//  Settings.swift
-//  UnToothAble
-//
-//  Created by Antonio Costa on 15/03/26.
-//
-
 import SwiftUI
 import UIKit
 
 struct Settings: View {
-    @Environment(GameManager.self) var gameManager
+    @Binding var isPresented: Bool
 
     @State private var showTutorial = false
     @State private var showCredits = false
@@ -19,81 +12,92 @@ struct Settings: View {
     @State private var hapticsEnabled = false
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 20) {
-            Text("Settings")
-                .font(.system(size: 18))
-                .foregroundStyle(.gray)
-                .padding(.top, 10)
+        ZStack(alignment: .top) {
+            ZStack(alignment: .topTrailing) {
+                RoundedRectangle(cornerRadius: 24)
+                    .fill(Color(red: 0.45, green: 0.58, blue: 0.88))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 24)
+                            .strokeBorder(Color(red: 0.25, green: 0.35, blue: 0.70), lineWidth: 4)
+                    )
+
+                HStack {
+                    Spacer()
+
+                    RoundedRectangle(cornerRadius: 6)
+                        .fill(Color(red: 0.60, green: 0.70, blue: 0.95).opacity(0.45))
+                        .frame(width: 16)
+                        .padding(.vertical, 20)
+                        .padding(.trailing, 10)
+                }
+                .clipShape(RoundedRectangle(cornerRadius: 24))
+
+                VStack(alignment: .leading, spacing: 22) {
+                    VStack(alignment: .leading, spacing: 18) {
+                        SettingsCheckboxRow(
+                            title: "ALWAYS SHOW STORY ",
+                            isOn: $showHistoryAlways
+                        )
+
+                        SettingsCheckboxRow(
+                            title: " MUSIC ",
+                            isOn: $musicEnabled
+                        )
+
+                        SettingsCheckboxRow(
+                            title: " HAPTICS ",
+                            isOn: $hapticsEnabled,
+                            isHapticsOption: true
+                        )
+                    }
+
+                    HStack(spacing: 14) {
+                        CustomButton(label: "TUTORIAL ", state: .normal, icon: nil) {
+                            showTutorial = true
+                        }
+
+                        CustomButton(label: "CREDITS ", state: .normal, icon: nil) {
+                            showCredits = true
+                        }
+                    }
+                    .padding(.top, 6)
+                }
+                .padding(.top, 28)
+                .padding(.bottom, 28)
+                .padding(.leading, 24)
+                .padding(.trailing, 44)
+            }
+            .frame(width: 382, height: 264)
+            .shadow(color: .black.opacity(0.45), radius: 16, x: 0, y: 8)
+
+            Text("SETTINGS ")
+                .font(.bangers(52))
+                .foregroundStyle(.white)
+                .customStroke(color: .black, width: 2)
+                .offset(y: -30)
 
             Button {
-                gameManager.goToScene(.home)
+                withAnimation(.spring(response: 0.3, dampingFraction: 0.75)) {
+                    isPresented = false
+                }
             } label: {
-                Text("Back")
-                    .font(.system(size: 34, weight: .black, design: .rounded))
-                    .foregroundStyle(.black)
-            }
-
-            VStack(alignment: .leading, spacing: 26) {
-                SettingsCheckboxRow(
-                    title: "Mostrar História sempre",
-                    isOn: $showHistoryAlways
-                )
-
-                SettingsCheckboxRow(
-                    title: "Música",
-                    isOn: $musicEnabled
-                )
-
-                SettingsCheckboxRow(
-                    title: "Haptics",
-                    isOn: $hapticsEnabled,
-                    isHapticsOption: true
-                )
-            }
-            .padding(.top, 10)
-
-            VStack(alignment: .leading, spacing: 16) {
-                Button {
-                    showTutorial = true
-                } label: {
-                    Text("Jogar Tutorial")
-                        .font(.system(size: 28))
-                        .foregroundStyle(.black)
-                        .padding(.horizontal, 20)
-                        .padding(.vertical, 12)
-                        .overlay(
-                            Rectangle()
-                                .stroke(Color.black, lineWidth: 2)
-                        )
-                }
-
-                Button {
-                    showCredits = true
-                } label: {
-                    Text("Creditos")
-                        .font(.system(size: 26))
-                        .foregroundStyle(.black)
-                        .padding(.horizontal, 20)
-                        .padding(.vertical, 12)
-                        .overlay(
-                            Rectangle()
-                                .stroke(Color.black, lineWidth: 2)
-                        )
+                ZStack {
+                    Image("x")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 35, height: 35)
                 }
             }
-            .padding(.top, 10)
-
-            Spacer()
+            .frame(width: 382, height: 264, alignment: .topTrailing)
+            .offset(x: 10, y: -15)
         }
-        .padding(.horizontal, 24)
-        .background(Color.white.ignoresSafeArea())
+        .frame(width: 382, height: 264)
+        .padding(.top, 36)
         .fullScreenCover(isPresented: $showTutorial) {
             Tutorial(
                 fromSettings: true,
                 onSkip: {},
-                onDismiss: {
-                    showTutorial = false
-                }
+                onDismiss: { showTutorial = false }
             )
         }
         .fullScreenCover(isPresented: $showCredits) {
@@ -103,6 +107,8 @@ struct Settings: View {
         }
     }
 }
+
+// MARK: - Checkbox Row
 
 struct SettingsCheckboxRow: View {
     let title: String
@@ -115,26 +121,31 @@ struct SettingsCheckboxRow: View {
 
             if isHapticsOption && isOn {
                 let generator = UIImpactFeedbackGenerator(style: .medium)
+                generator.prepare()
                 generator.impactOccurred()
             }
         } label: {
-            HStack(spacing: 20) {
-                Rectangle()
-                    .fill(Color(.systemGray5))
-                    .frame(width: 36, height: 36)
-                    .overlay {
-                        if isOn {
-                            Image(systemName: "checkmark")
-                                .foregroundStyle(.black)
-                        }
-                    }
-
+            HStack {
                 Text(title)
-                    .font(.system(size: 26))
-                    .foregroundStyle(.black)
+                    .font(.bangers(26))
+                    .foregroundStyle(.white)
+                    .customStroke(color: .black, width: 1)
 
                 Spacer()
+
+                ZStack {
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(Color(red: 0.62, green: 0.70, blue: 0.88))
+                        .frame(width: 36, height: 36)
+
+                    if isOn {
+                        Image(systemName: "checkmark")
+                            .font(.system(size: 18, weight: .black))
+                            .foregroundStyle(.black)
+                    }
+                }
             }
+            .padding(.trailing, 16)
         }
         .buttonStyle(.plain)
     }
