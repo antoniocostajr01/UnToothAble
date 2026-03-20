@@ -65,6 +65,7 @@ struct GameOver: View {
                             width: 130
                         ) {
                             showRewardedAndContinue()
+                            AudioManager.shared.toggleMute()
                         }
                         .overlay(alignment: .topTrailing) {
                             Image("rewardTv")
@@ -73,6 +74,7 @@ struct GameOver: View {
                                 .frame(width: 21, height: 24)
                                 .offset(x: 8, y: -12)
                         }
+                        
 
                     } else {
                         HStack(spacing: 18) {
@@ -125,7 +127,11 @@ struct GameOver: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .ignoresSafeArea()
         .onAppear {
+            AudioManager.shared.toggleMute()
             gameManager.refreshRewardedAvailability()
+        }
+        .onDisappear{
+            AudioManager.shared.toggleMute()
         }
     }
     
@@ -148,7 +154,9 @@ struct GameOver: View {
         guard gameManager.canUseContinue else { return }
         guard let rootVC = topViewController() else { return }
 
+
         gameManager.isShowingRewardedAd = true
+
 
         RewardedAdManager.shared.presentAd(
             from: rootVC,
@@ -157,6 +165,7 @@ struct GameOver: View {
                 gameManager.isShowingRewardedAd = false
                 onContinue()
                 gameManager.goToScene(.game)
+                AudioManager.shared.toggleMute()
             },
             onFinishedWithoutReward: {
                 gameManager.isShowingRewardedAd = false
