@@ -9,6 +9,7 @@ import SwiftUI
 struct CustomButton: View {
     
     var label: String
+    
     var state: ButtonState
     var icon: IconName? = nil
     var action: () -> Void
@@ -36,6 +37,18 @@ struct CustomButton: View {
             return .settingsIcon
         case .tooth:
             return .toothIcon
+
+        case .sound:
+            return .iconSound
+
+        case .restart:
+            return .iconRestart
+
+        case .home:
+            return .iconHome
+
+        case .music:
+            return .iconMusic
         }
     }
 
@@ -67,3 +80,4 @@ struct CustomButton: View {
         .frame(width: 120, height: 42)
     }
 }
+
