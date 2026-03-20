@@ -101,8 +101,27 @@ struct GameOver: View {
                         .frame(height: 72)
                 }
                 .frame(width: 690, height: 430)
-            }
-        }
+
+                if isFirstDeathInRun {
+                    Button {
+                        
+                        if !isFirstDeathInRun {
+                            gameManager.resetReviveForNewRun()
+                            gameManager.gameScene.restartGame()
+                        }
+                        
+                        
+                        gameManager.hasUsedReviveThisRun = true
+                    } label: {
+                        Image("x")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 35, height: 35)
+                    }
+                    .frame(width: 382, height: 264, alignment: .topTrailing)
+                    .offset(x: 10, y: -15)
+                }
+            }        }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .ignoresSafeArea()
         .onAppear {
