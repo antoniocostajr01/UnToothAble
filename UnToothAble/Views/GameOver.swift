@@ -149,7 +149,7 @@ struct GameOver: View {
 
             ZStack {
                 Capsule()
-                    .fill(Color(red: 0.38, green: 0.72, blue: 0.93))
+                    .fill(Color(.lightBlueCapsule))
                     .frame(width: 124, height: 34)
 
                 Text(" \(value) ")
