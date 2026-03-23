@@ -35,62 +35,75 @@ struct GameOver: View {
                 Image(popup)
                     .resizable()
                     .scaledToFit()
-                    .frame(width: 382, height: 264)
-                    .overlay(alignment: .top) {
-                        Text(" SCORE ")
-                            .font(.bangers(48))
-                            .foregroundStyle(.white)
-                            .customStroke(color: Color(.darkBlueStroke), width: 2)
-                            .offset(y: -34)
-                    }
+                    .frame(width: 356, height: 293)
 
                 VStack(spacing: 0) {
                     Spacer()
-                        .frame(height: 110)
+                        .frame(height: 135)
 
-                    VStack(spacing: 18) {
-                        scoreRow(title: " DISTANCE ", value: " \(score) M ")
-                        scoreRow(title: " BEST ", value: " \(bestScore) M ")
+                    HStack(spacing: 20) {
+                        statCard(
+                            title: " BEST ",
+                            value: "\(bestScore) M",
+                        )
+
+                        statCard(
+                            title: " DISTANCE ",
+                            value: "\(score) M"
+                        )
                     }
-                    .frame(maxWidth: 430)
 
                     Spacer()
-                        .frame(height: 70)
+                        .frame(height: 24)
 
                     if isFirstDeathInRun {
-                        CustomButton(
-                            label: " Continue? (Ad) ",
-                            state: .normal,
-                            icon: .none,
-                            width: 130
-                        ) {
-                            showRewardedAndContinue()
-                            AudioManager.shared.toggleMute()
+                        VStack(spacing: 12) {
+                            CustomButton(
+                                label: " Continue? (Ad) ",
+                                state: .normal,
+                                icon: Optional.none,
+                                width: 123
+                            ) {
+                                showRewardedAndContinue()
+                            }
+                            .overlay(alignment: .topTrailing) {
+                                Image("rewardTv")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 21, height: 24)
+                                    .offset(x: 8, y: -10)
+                            }
+
+                                .frame(height: 16)
+
+                            Button {
+                                gameManager.markReviveAsUsed()
+                            } label: {
+                                Text(" NO, THANK YOU ")
+                                    .font(.bangers(16))
+                                    .foregroundStyle(.white)
+                                    .customStroke(color: Color(.darkBlueStroke), width: 1)
+                            }
+                            .buttonStyle(.plain)
                         }
-                        .overlay(alignment: .topTrailing) {
-                            Image("rewardTv")
-                                .resizable()
-                                .scaledToFit()
-                                .frame(width: 21, height: 24)
-                                .offset(x: 8, y: -12)
-                        }
-                        
 
                     } else {
-                        HStack(spacing: 18) {
+                        HStack(spacing: 22) {
                             CustomButton(
-                                label: "Restart",
+                                label: " Restart ",
                                 state: .normal,
-                                icon: .restart
+                                icon: .restart,
+                                width: 125
                             ) {
                                 onRestart()
                                 gameManager.goToScene(.game)
                             }
 
                             CustomButton(
-                                label: "Home",
+                                label: " Menu ",
                                 state: .normal,
-                                icon: .home
+                                icon: .home,
+                                width: 125
                             ) {
                                 gameManager.resetReviveForNewRun()
                                 gameManager.gameScene.restartGame()
@@ -100,53 +113,50 @@ struct GameOver: View {
                     }
 
                     Spacer()
-                        .frame(height: 72)
+                        .frame(height: isFirstDeathInRun ? 18 : 34)
                 }
-                .frame(width: 690, height: 430)
+                .frame(width: 420, height: 300)
 
-                if isFirstDeathInRun {
-                    Button {
-                        
-                        if !isFirstDeathInRun {
-                            gameManager.resetReviveForNewRun()
-                            gameManager.gameScene.restartGame()
-                        }
-                        
-                        
-                        gameManager.hasUsedReviveThisRun = true
-                    } label: {
-                        Image("x")
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 35, height: 35)
-                    }
-                    .frame(width: 382, height: 264, alignment: .topTrailing)
-                    .offset(x: 10, y: -15)
+                .overlay(alignment: .top){
+                    Text(" SCORE ")
+                        .font(.bangers(38))
+                        .foregroundStyle(.white)
+                        .customStroke(color: Color(.lightBlueStroke), width: 1)
+                        .padding(.top, 66)
+    //                    .offset(y: -114)
                 }
-            }        }
+            }
+            .offset(y: -24)
+        }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .ignoresSafeArea()
         .onAppear {
             AudioManager.shared.toggleMute()
             gameManager.refreshRewardedAvailability()
         }
-        .onDisappear{
+        .onDisappear {
             AudioManager.shared.toggleMute()
         }
     }
-    
-    @ViewBuilder
-    private func scoreRow(title: String, value: String) -> some View {
-        HStack(spacing: 122) {
-            Text(title)
-                .font(.bangers(22))
-                .foregroundStyle(.white)
-                .customStroke(color: .black, width: 1)
 
-            Text(value)
-                .font(.bangers(22))
+    @ViewBuilder
+    private func statCard(title: String, value: String, leadingIcon: String? = nil) -> some View {
+        VStack(spacing: 10) {
+            Text(title)
+                .font(.bangers(17))
                 .foregroundStyle(.white)
-                .customStroke(color: .black, width: 1)
+                .customStroke(color: Color(.black), width: 1)
+
+            ZStack {
+                Capsule()
+                    .fill(Color(red: 0.38, green: 0.72, blue: 0.93))
+                    .frame(width: 124, height: 34)
+
+                Text(" \(value) ")
+                    .font(.bangers(22))
+                    .foregroundStyle(.white)
+                    .customStroke(color: Color(.darkBlueStroke), width: 1.5)
+            }
         }
     }
 
@@ -154,9 +164,7 @@ struct GameOver: View {
         guard gameManager.canUseContinue else { return }
         guard let rootVC = topViewController() else { return }
 
-
         gameManager.isShowingRewardedAd = true
-
 
         RewardedAdManager.shared.presentAd(
             from: rootVC,
