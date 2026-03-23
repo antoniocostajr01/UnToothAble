@@ -34,6 +34,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     var fixedPlayerX: CGFloat = 0
     private var hasPerformedInitialSetup = false
 
+    var isGrounded: Bool = false
+
     // Pontuação
     private var score: Int = 0
     private var scoreAccumulator: TimeInterval = 0
@@ -112,20 +114,12 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         guard let entity = playerEntity,
               var jetPack = ecsWorld.component(JetPackComponent.self, for: entity) else { return }
-              
-        if jetPack.currentFuel >= jetPack.ignitionCost {
-            jetPack.isThrusting = true
-            jetPack.currentFuel -= jetPack.ignitionCost
-            
-            if let body = player.physicsBody {
-                let tapVelocityBurst: CGFloat = 700.0
-                if body.velocity.dy < tapVelocityBurst {
-                    body.velocity.dy = tapVelocityBurst
-                }
-            }
-            
-            ecsWorld.addComponent(jetPack, to: entity)
-        }
+
+        guard jetPack.currentFuel >= jetPack.ignitionCost else { return }
+
+        jetPack.isThrusting = true
+        jetPack.currentFuel -= jetPack.ignitionCost
+        ecsWorld.addComponent(jetPack, to: entity)
     }
 
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
@@ -343,8 +337,16 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
 
         switch CollisionHandler.handle(contact) {
         case .groundTouched:
+            isGrounded = true
             if let entity = playerEntity, var jetPack = ecsWorld.component(JetPackComponent.self, for: entity) {
-                jetPack.currentFuel = jetPack.maxFuel
+                jetPack.isRecharging = true
+                ecsWorld.addComponent(jetPack, to: entity)
+            }
+
+        case .groundLeft:
+            isGrounded = false
+            if let entity = playerEntity, var jetPack = ecsWorld.component(JetPackComponent.self, for: entity) {
+                jetPack.isRecharging = false
                 ecsWorld.addComponent(jetPack, to: entity)
             }
 
@@ -353,6 +355,18 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             gameOver(hitObstacleNode: obstacleNode)
 
         case .none:
+            break
+        }
+    }
+
+    func didEnd(_ contact: SKPhysicsContact) {
+        switch CollisionHandler.handleEnd(contact) {
+        case .groundLeft:
+            if let entity = playerEntity, var jetPack = ecsWorld.component(JetPackComponent.self, for: entity) {
+                jetPack.isRecharging = false
+                ecsWorld.addComponent(jetPack, to: entity)
+            }
+        default:
             break
         }
     }
