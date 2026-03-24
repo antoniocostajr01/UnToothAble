@@ -5,7 +5,6 @@
 //  Created by Rafael Toneto on 16/03/26.
 //
 
-
 import SwiftUI
 import UIKit
 
@@ -17,45 +16,137 @@ struct GameOver: View {
     var onRestart: () -> Void
     var onContinue: () -> Void
 
+    private let popup = "gameOverPopup"
+
+    private var bestScore: Int {
+        LocalScoreStore.shared.bestScore
+    }
+
+    private var isFirstDeathInRun: Bool {
+        !gameManager.hasUsedReviveThisRun
+    }
+
     var body: some View {
-        VStack(spacing: 30) {
-            Text("Game Over")
-                .font(.system(size: 60, weight: .bold))
-                .foregroundStyle(.black)
+        ZStack {
+            Color.black.opacity(0.75)
+                .ignoresSafeArea()
 
-            Text("Score: \(score)")
-                .font(.system(size: 40))
-                .foregroundStyle(.black)
+            ZStack {
+                Image(popup)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 382, height: 264)
+                    .overlay(alignment: .top) {
+                        Text(" SCORE ")
+                            .font(.bangers(48))
+                            .foregroundStyle(.white)
+                            .customStroke(color: Color(.darkBlueStroke), width: 2)
+                            .offset(y: -34)
+                    }
 
-            VStack(spacing: 20) {
+                VStack(spacing: 0) {
+                    Spacer()
+                        .frame(height: 110)
 
-                Button {
-                    showRewardedAndContinue()
-                } label: {
-                    Text(gameManager.hasUsedReviveThisRun ? "Continue Unavailable" : "Continue Run")
+                    VStack(spacing: 18) {
+                        scoreRow(title: " DISTANCE ", value: " \(score) M ")
+                        scoreRow(title: " BEST ", value: " \(bestScore) M ")
+                    }
+                    .frame(maxWidth: 430)
+
+                    Spacer()
+                        .frame(height: 70)
+
+                    if isFirstDeathInRun {
+                        CustomButton(
+                            label: " Continue? (Ad) ",
+                            state: .normal,
+                            icon: .none,
+                            width: 130
+                        ) {
+                            showRewardedAndContinue()
+                            AudioManager.shared.toggleMute()
+                        }
+                        .overlay(alignment: .topTrailing) {
+                            Image("rewardTv")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 21, height: 24)
+                                .offset(x: 8, y: -12)
+                        }
+                        
+
+                    } else {
+                        HStack(spacing: 18) {
+                            CustomButton(
+                                label: "Restart",
+                                state: .normal,
+                                icon: .restart
+                            ) {
+                                onRestart()
+                                gameManager.goToScene(.game)
+                            }
+
+                            CustomButton(
+                                label: "Home",
+                                state: .normal,
+                                icon: .home
+                            ) {
+                                gameManager.resetReviveForNewRun()
+                                gameManager.gameScene.restartGame()
+                                gameManager.goToScene(.home)
+                            }
+                        }
+                    }
+
+                    Spacer()
+                        .frame(height: 72)
                 }
-                .buttonStyle(.bordered)
-                .disabled(!gameManager.canUseContinue)
+                .frame(width: 690, height: 430)
 
-                Button("Restart Run") {
-                    onRestart()
-                    gameManager.goToScene(.game)
+                if isFirstDeathInRun {
+                    Button {
+                        
+                        if !isFirstDeathInRun {
+                            gameManager.resetReviveForNewRun()
+                            gameManager.gameScene.restartGame()
+                        }
+                        
+                        
+                        gameManager.hasUsedReviveThisRun = true
+                    } label: {
+                        Image("x")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 35, height: 35)
+                    }
+                    .frame(width: 382, height: 264, alignment: .topTrailing)
+                    .offset(x: 10, y: -15)
                 }
-                .buttonStyle(.bordered)
-
-                Button("Back to Menu") {
-                    gameManager.resetReviveForNewRun()
-                    gameManager.gameScene.restartGame()
-                    gameManager.goToScene(.home)
-                }
-                .buttonStyle(.bordered)
-            }
-            .font(.system(size: 30))
-        }
+            }        }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(.white)
+        .ignoresSafeArea()
         .onAppear {
+            AudioManager.shared.toggleMute()
             gameManager.refreshRewardedAvailability()
+        }
+        .onDisappear{
+            AudioManager.shared.toggleMute()
+        }
+    }
+    
+    @ViewBuilder
+    private func scoreRow(title: String, value: String) -> some View {
+        HStack(spacing: 122) {
+            Text(title)
+                .font(.bangers(22))
+                .foregroundStyle(.white)
+                .customStroke(color: .black, width: 1)
+
+            Text(value)
+                .font(.bangers(22))
+                .foregroundStyle(.white)
+                .customStroke(color: .black, width: 1)
         }
     }
 
@@ -63,7 +154,9 @@ struct GameOver: View {
         guard gameManager.canUseContinue else { return }
         guard let rootVC = topViewController() else { return }
 
+
         gameManager.isShowingRewardedAd = true
+
 
         RewardedAdManager.shared.presentAd(
             from: rootVC,
@@ -72,6 +165,7 @@ struct GameOver: View {
                 gameManager.isShowingRewardedAd = false
                 onContinue()
                 gameManager.goToScene(.game)
+                AudioManager.shared.toggleMute()
             },
             onFinishedWithoutReward: {
                 gameManager.isShowingRewardedAd = false
@@ -79,7 +173,7 @@ struct GameOver: View {
             }
         )
     }
-    
+
     private func topViewController(
         base: UIViewController? = UIApplication.shared.connectedScenes
             .compactMap { $0 as? UIWindowScene }

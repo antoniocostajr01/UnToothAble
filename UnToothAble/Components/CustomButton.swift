@@ -9,8 +9,10 @@ import SwiftUI
 struct CustomButton: View {
     
     var label: String
+    
     var state: ButtonState
-    var icon: IconName? = nil
+    var icon: IconName?
+    var width: CGFloat = 120
     var action: () -> Void
     
     private var bgImage: ImageResource {
@@ -36,6 +38,21 @@ struct CustomButton: View {
             return .settingsIcon
         case .tooth:
             return .toothIcon
+
+        case .sound:
+            return .iconSound
+
+        case .restart:
+            return .iconRestart
+
+        case .home:
+            return .iconHome
+
+        case .music:
+            return .iconMusic
+        case .none:
+            return nil
+
         }
     }
 
@@ -43,27 +60,40 @@ struct CustomButton: View {
         Button {
             action()
         } label: {
-            HStack(spacing: 6) {
+            HStack(spacing: 0) {
+                
                 if let iconImage {
                     Image(iconImage)
                         .resizable()
                         .scaledToFit()
-                        .frame(width: 24, height: 24)
+                        .frame(width: 20, height: 20)
                 }
                 
-                Text(label)
-                    .font(.bangers(24))
+                Text("\(label)  ")
+                    .font(.bangers(21))
                     .foregroundStyle(.white)
-                    .customStroke(color: .black, width: 1)
             }
-            .frame(width: 120, height: 42)
+            .frame(width: width)
         }
         .background(
             Image(bgImage)
                 .resizable()
-                .scaledToFit()
-                .frame(width: 120, height: 41)
+//                .scaledToFit()
+                .frame(width: width, height: 41)
         )
-        .frame(width: 120, height: 42)
+        .frame(width: width, height: 42)
     }
 }
+
+#Preview {
+    VStack(spacing: 20) {
+        CustomButton(label: "teste", state: .normal, icon: .play) {
+            print("teste")
+        }
+
+        CustomButton(label: " Continue? (Ad) ", state: .normal, icon: Optional.none, width: 170) {
+            print("continue")
+        }
+    }
+}
+

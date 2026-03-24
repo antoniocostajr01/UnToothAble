@@ -21,6 +21,9 @@ struct UnToothAbleApp: App {
     var body: some Scene {
         WindowGroup {
             Root()
+                .onAppear {
+                    AudioManager.shared.playMusic(named: "backgroundSong.mp3")
+                }
         }
     }
 }
