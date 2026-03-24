@@ -46,7 +46,7 @@ struct Home: View {
 
                 VStack(spacing: 16) {
                     CustomButton(label: " PLAY ", state: .normal, icon: .play) {
-                        gameManager.goToScene(.game)
+                        gameManager.goToScene(.loading)
                     }
                   
                     CustomButton(label: " SHOP ", state: .normal, icon: .tooth) {
@@ -67,7 +67,7 @@ struct Home: View {
                     .transition(.opacity)
 
                 Settings(isPresented: $showSettings)
-                    .frame(width: 382, height: 264)
+                    .frame(width: 417, height: 265)
                     .transition(.scale(scale: 0.85).combined(with: .opacity))
                     .zIndex(1)
             }

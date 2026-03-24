@@ -8,48 +8,48 @@ struct Settings: View {
     @State private var showCredits = false
 
     @State private var showHistoryAlways = false
-    @State private var musicEnabled = false
-    @State private var hapticsEnabled = false
+    @State private var musicEnabled = UserDefaults.standard.bool(forKey: "musicEnabled")
+    @State private var hapticsEnabled = UserDefaults.standard.object(forKey: "hapticsEnabled") as? Bool ?? true
 
     var body: some View {
         ZStack(alignment: .top) {
-            ZStack(alignment: .topTrailing) {
-                RoundedRectangle(cornerRadius: 24)
-                    .fill(Color(red: 0.45, green: 0.58, blue: 0.88))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 24)
-                            .strokeBorder(Color(red: 0.25, green: 0.35, blue: 0.70), lineWidth: 4)
+            ZStack(alignment: .topLeading) {
+
+                Image("settings")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 400, height: 300)
+
+                VStack(alignment: .leading, spacing: 10) {
+
+                    Spacer().frame(height: 48)
+
+                    SettingsRow(
+                        title: " ALWAYS SHOW STORY ",
+                        isOn: $showHistoryAlways
                     )
 
-                HStack {
-                    Spacer()
+                    SettingsRow(
+                        title: " MUSIC ",
+                        isOn: $musicEnabled
+                    ) { isOn in
+                        UserDefaults.standard.set(isOn, forKey: "musicEnabled") 
 
-                    RoundedRectangle(cornerRadius: 6)
-                        .fill(Color(red: 0.60, green: 0.70, blue: 0.95).opacity(0.45))
-                        .frame(width: 16)
-                        .padding(.vertical, 20)
-                        .padding(.trailing, 10)
-                }
-                .clipShape(RoundedRectangle(cornerRadius: 24))
-
-                VStack(alignment: .leading, spacing: 22) {
-                    VStack(alignment: .leading, spacing: 18) {
-                        SettingsCheckboxRow(
-                            title: "ALWAYS SHOW STORY ",
-                            isOn: $showHistoryAlways
-                        )
-
-                        SettingsCheckboxRow(
-                            title: " MUSIC ",
-                            isOn: $musicEnabled
-                        )
-
-                        SettingsCheckboxRow(
-                            title: " HAPTICS ",
-                            isOn: $hapticsEnabled,
-                            isHapticsOption: true
-                        )
+                        if isOn {
+                            AudioManager.shared.playMusic(named: "backgroundSong.mp3")
+                        } else {
+                            AudioManager.shared.toggleMute()
+                        }
                     }
+
+                    SettingsRow(
+                        title: " HAPTICS ",
+                        isOn: $hapticsEnabled,
+                        isHapticsOption: true
+                    ) { isOn in
+                        UserDefaults.standard.set(isOn, forKey: "hapticsEnabled")
+                    }
+
 
                     HStack(spacing: 14) {
                         CustomButton(label: "TUTORIAL ", state: .normal, icon: nil) {
@@ -60,36 +60,28 @@ struct Settings: View {
                             showCredits = true
                         }
                     }
-                    .padding(.top, 6)
-                }
-                .padding(.top, 28)
-                .padding(.bottom, 28)
-                .padding(.leading, 24)
-                .padding(.trailing, 44)
-            }
-            .frame(width: 382, height: 264)
-            .shadow(color: .black.opacity(0.45), radius: 16, x: 0, y: 8)
+                    .frame(maxWidth: .infinity, alignment: .center)
 
-            Text("SETTINGS ")
-                .font(.bangers(52))
-                .foregroundStyle(.white)
-                .customStroke(color: .black, width: 2)
-                .offset(y: -30)
+                    Spacer()
+                }
+                .padding(.leading, 24)
+                .padding(.trailing, 24)
+                .padding(.top, 70)
+                .frame(width: 382, height: 264)
+            }
 
             Button {
                 withAnimation(.spring(response: 0.3, dampingFraction: 0.75)) {
                     isPresented = false
                 }
             } label: {
-                ZStack {
-                    Image("x")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 35, height: 35)
-                }
+                Image("x")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 35, height: 35)
             }
             .frame(width: 382, height: 264, alignment: .topTrailing)
-            .offset(x: 10, y: -15)
+            .offset(x: 10, y: 30)
         }
         .frame(width: 382, height: 264)
         .padding(.top, 36)
@@ -108,44 +100,47 @@ struct Settings: View {
     }
 }
 
-// MARK: - Checkbox Row
-
-struct SettingsCheckboxRow: View {
+struct SettingsRow: View {
     let title: String
     @Binding var isOn: Bool
     var isHapticsOption: Bool = false
+    var onToggle: ((Bool) -> Void)? = nil
 
     var body: some View {
         Button {
             isOn.toggle()
+            onToggle?(isOn) 
 
             if isHapticsOption && isOn {
-                let generator = UIImpactFeedbackGenerator(style: .medium)
-                generator.prepare()
-                generator.impactOccurred()
-            }
+                        let generator = UIImpactFeedbackGenerator(style: .medium)
+                        generator.prepare()
+                        generator.impactOccurred()
+                    }
         } label: {
             HStack {
                 Text(title)
-                    .font(.bangers(26))
+                    .font(.bangers(22))
                     .foregroundStyle(.white)
-                    .customStroke(color: .black, width: 1)
+                    .customStroke(color: .stroke, width: 1)
 
                 Spacer()
 
                 ZStack {
-                    RoundedRectangle(cornerRadius: 8)
-                        .fill(Color(red: 0.62, green: 0.70, blue: 0.88))
+                    Image("checkOff")
+                        .resizable()
+                        .scaledToFit()
                         .frame(width: 36, height: 36)
 
                     if isOn {
-                        Image(systemName: "checkmark")
-                            .font(.system(size: 18, weight: .black))
-                            .foregroundStyle(.black)
+                        Image("checkOn")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 40, height: 40)
                     }
                 }
             }
-            .padding(.trailing, 16)
+            .frame(height: 36)
+            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
     }
