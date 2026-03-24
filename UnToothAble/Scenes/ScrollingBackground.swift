@@ -13,8 +13,8 @@ final class ScrollingBackground: SKNode {
     private var totalRecycles = 0
     
     // Parallax: 0.5 faz o fundo mover na metade da velocidade do chão
-    private let speedMultiplier: CGFloat = 0.2
-    
+    private let speedMultiplier: CGFloat = 0.25
+
     var onLevelUp: (() -> Void)?
     
     private let initialBGs = [

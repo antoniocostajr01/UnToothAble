@@ -316,6 +316,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         obstacleSpawnAccumulator = 0
         bossSpawnAccumulator = 0
 
+        player.physicsBody?.isDynamic = true
         player.position.x = fixedPlayerX
         player.physicsBody?.velocity = .zero
         player.physicsBody?.applyImpulse(CGVector(dx: 0, dy: 80))
@@ -376,6 +377,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
 
         isGameOver = true
         lastHitObstacleNode = hitObstacleNode
+
+        player.physicsBody?.velocity = .zero
+        player.physicsBody?.isDynamic = false
 
         removeAction(forKey: "spawnObstacles")
         removeAction(forKey: "spawnAerialObstacles")
