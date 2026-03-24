@@ -210,7 +210,7 @@ extension GameScene {
         let obstacleAnimation = SKAction.animate(with: obstacleTextures, timePerFrame: 0.15)
         obstacle.run(.repeatForever(obstacleAnimation), withKey: "obstacleAnimation")
 
-        obstacle.physicsBody = SKPhysicsBody(rectangleOf: obstacle.size)
+        obstacle.physicsBody = SKPhysicsBody(rectangleOf: CGSize(width: 60, height: 60))
         obstacle.physicsBody?.isDynamic = false
         obstacle.physicsBody?.categoryBitMask = GameConstants.PhysicsCategory.obstacle
         obstacle.physicsBody?.contactTestBitMask = GameConstants.PhysicsCategory.player
