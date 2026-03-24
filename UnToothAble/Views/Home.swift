@@ -46,7 +46,7 @@ struct Home: View {
 
                 VStack(spacing: 16) {
                     CustomButton(label: " PLAY ", state: .normal, icon: .play) {
-                        gameManager.goToScene(.game)
+                        gameManager.goToScene(.loading)
                     }
                   
                     CustomButton(label: " SHOP ", state: .normal, icon: .tooth) {
