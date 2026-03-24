@@ -19,12 +19,14 @@ struct Root: View {
                 Home()
 //            case .settings:
 //                Settings()
-            case .game:
+            case .game, .gameOver:
                 Game()
             case .shop:
                 Shop()
-            case .game, .gameOver:
-                Game()
+                
+            case .loading:
+                Loading()
+                
             }
 
             if gameManager.currentScene == .gameOver {
