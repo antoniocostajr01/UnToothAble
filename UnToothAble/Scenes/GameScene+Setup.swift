@@ -58,17 +58,37 @@ extension GameScene {
         addChild(player)
 
         fuelBar?.removeFromParent()
+        fuelBarBorder?.removeFromParent()
+        fuelBarIcon?.removeFromParent()
 
-        let barWidth: CGFloat = 8
-        let barHeight: CGFloat = 40
-        let rect = CGRect(x: -barWidth / 2, y: 0, width: barWidth, height: barHeight)
+        let barWidth: CGFloat = 14
+        let barHeight: CGFloat = 50
 
-        fuelBar = SKShapeNode(rect: rect)
-        fuelBar.fillColor = .systemGreen
-        fuelBar.strokeColor = .white
+        let borderRect = CGRect(x: -barWidth / 2, y: 0, width: barWidth, height: barHeight)
+        fuelBarBorder = SKShapeNode(rect: borderRect, cornerRadius: 7)
+        fuelBarBorder.fillColor = UIColor(white: 0.9, alpha: 1.0)
+        fuelBarBorder.strokeColor = UIColor(red: 0.22, green: 0.54, blue: 0.87, alpha: 1)
+        fuelBarBorder.lineWidth = 2
+        fuelBarBorder.position = CGPoint(x: -45, y: -20)
+        player.addChild(fuelBarBorder)
 
+        let fillRect = CGRect(x: -barWidth / 2 + 3, y: 3, width: barWidth - 6, height: barHeight - 6)
+        fuelBar = SKShapeNode(rect: fillRect, cornerRadius: 4)
+        fuelBar.fillColor = UIColor(red: 0.22, green: 0.54, blue: 0.87, alpha: 1)
+        fuelBar.strokeColor = .clear
         fuelBar.position = CGPoint(x: -45, y: -20)
         player.addChild(fuelBar)
+
+        fuelBarIcon = SKLabelNode(text: "⚡")
+        fuelBarIcon.fontSize = 10
+        fuelBarIcon.verticalAlignmentMode = .center
+        fuelBarIcon.horizontalAlignmentMode = .center
+        fuelBarIcon.position = CGPoint(x: -46, y: 5)
+        player.addChild(fuelBarIcon)
+
+        fuelBarBorder.zPosition = 0
+        fuelBar.zPosition = 1
+        fuelBarIcon.zPosition = 2
 
         let entity = PlayerFactory.create(in: ecsWorld)
         ecsWorld.addComponent(PositionComponent(x: player.position.x, y: player.position.y), to: entity)
