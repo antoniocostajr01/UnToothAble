@@ -54,15 +54,15 @@ struct GameOver: View {
                     }
 
                     Spacer()
-                        .frame(height: 24)
+                        .frame(height: 27)
 
                     if isFirstDeathInRun {
-                        VStack(spacing: 12) {
+                        VStack(spacing: 18) {
                             CustomButton(
                                 label: " Continue? (Ad) ",
                                 state: .normal,
                                 icon: Optional.none,
-                                width: 123
+                                width: 140
                             ) {
                                 showRewardedAndContinue()
                             }
@@ -70,8 +70,8 @@ struct GameOver: View {
                                 Image("rewardTv")
                                     .resizable()
                                     .scaledToFit()
-                                    .frame(width: 21, height: 24)
-                                    .offset(x: 8, y: -10)
+                                    .frame(width: 24, height: 27)
+                                    .offset(x: 8, y: -14)
                             }
 
                                 .frame(height: 16)
