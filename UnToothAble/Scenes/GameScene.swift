@@ -390,6 +390,14 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         bossSpawnAccumulator = 0
         jetpackHapticAccumulator = 0
 
+        worldNode.children.filter { $0.physicsBody?.categoryBitMask == GameConstants.PhysicsCategory.projectile }.forEach { $0.removeFromParent() }
+
+        if let bossNode = worldNode.childNode(withName: "boss") {
+            removeBossEntity(for: bossNode)
+            bossNode.removeFromParent()
+        }
+
+        player.physicsBody?.categoryBitMask = GameConstants.PhysicsCategory.player
         player.physicsBody?.isDynamic = true
         player.position.x = fixedPlayerX
         player.physicsBody?.velocity = .zero

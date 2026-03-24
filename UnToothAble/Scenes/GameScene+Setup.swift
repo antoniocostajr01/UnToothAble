@@ -189,7 +189,7 @@ extension GameScene {
         projectile.run(.sequence([moveLeft, remove]))
     }
 
-    private func removeBossEntity(for node: SKNode) {
+    func removeBossEntity(for node: SKNode) {
         let bosses = ecsWorld.entities(with: [SpriteComponent.self])
         
         for entity in bosses {
