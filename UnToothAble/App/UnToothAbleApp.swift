@@ -12,7 +12,12 @@ import GoogleMobileAds
 struct UnToothAbleApp: App {
 
     init() {
+        if UserDefaults.standard.object(forKey: "musicEnabled") == nil {
+            UserDefaults.standard.set(true, forKey: "musicEnabled")
+        }
+
         MobileAds.shared.start()
+
         Task { @MainActor in
             RewardedAdManager.shared.preloadAd()
         }
@@ -23,7 +28,9 @@ struct UnToothAbleApp: App {
         WindowGroup {
             Root()
                 .onAppear {
-                    AudioManager.shared.playMusic(named: "backgroundSong.mp3")
+                    if UserDefaults.standard.bool(forKey: "musicEnabled") {
+                        AudioManager.shared.playMusic(named: "backgroundSong.mp3")
+                    }
                 }
         }
     }
