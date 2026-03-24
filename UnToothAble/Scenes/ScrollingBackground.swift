@@ -2,7 +2,6 @@
 //  BackgroundMoving.swift
 //  UnToothAble
 //
-//  Estrutura escalável para 4 níveis (Level 1, Level 2, Rua e Esgoto)
 //
 
 import SpriteKit
@@ -18,11 +17,7 @@ final class ScrollingBackground: SKNode {
     var onLevelUp: (() -> Void)?
     
     private let initialBGs = [
-        "Scene1", "Scene2", "Scene3", "Scene4", "Scene5", "Scene6",
-        "Scene7", "Scene8", "Scene9", "Scene10", "Scene11", "Scene12",
-        "Scene13", "Scene14", "Scene15", "Scene16", "Scene17", "Scene18",
-        "Scene19", "Scene20", "Scene21", "Scene22", "Scene23", "Scene24",
-        "Scene25", "Scene26"
+        "Scene1", "Scene2", "Scene3", "Scene4", "Scene5"
     ]
     // Guardamos a largura padrão para garantir que todas as partes tenham o mesmo tamanho
     private var panelWidth: CGFloat = 0
@@ -61,72 +56,50 @@ final class ScrollingBackground: SKNode {
             if bg.position.x <= -(panelWidth / 2) {
                 bg.position.x += panelWidth * CGFloat(backgroundNodes.count)
                 totalRecycles += 1
+                print(totalRecycles)
             
                 switch totalRecycles{
                 case 4:
                     onLevelUp?()
-                case 11:
-                    onLevelUp?()
-                case 17:
-                    onLevelUp?()
-                case 26:
-                    onLevelUp?()
+
                 default:
                     break
                 }
                 
                             
-//                // 3. Troca de textura escalável usando Switch
-//                if bg.name == "bg_0" {
-//                    switch totalRecycles {
-//                        // Transição L1 -> L2
-//                    case 7:  bg.texture = SKTexture(imageNamed: "TransitionBG1")
-//                    case 10:
-//                        bg.texture = SKTexture(imageNamed: "Background1Level2")
-//                        onLevelUp?() // <--- AVISA QUE O LEVEL 2 COMEÇOU!
-//                        
-//                        // Transição L2 -> L3 (Rua)
-//                    case 16: bg.texture = SKTexture(imageNamed: "TransitionLevel2ToRua_1")
-//                    case 19:
-//                        bg.texture = SKTexture(imageNamed: "Background1Level3")
-//                        onLevelUp?() // <--- AVISA QUE O LEVEL 3 COMEÇOU!
-//                        
-//                        // Transição L3 -> L4 (Esgoto)
-//                    case 25: bg.texture = SKTexture(imageNamed: "TransitionRuaToEsgoto_1")
-//                    case 28:
-//                        bg.texture = SKTexture(imageNamed: "Background1Level4")
-//                        onLevelUp?() // <--- AVISA QUE O LEVEL 4 COMEÇOU!
-//                        
-//                    default: break
-//                    }
-//                }
-//                else if bg.name == "bg_1" {
-//                    switch totalRecycles {
-//                        // Transição L1 -> L2
-//                    case 8:  bg.texture = SKTexture(imageNamed: "TransitionBG2")
-//                    case 11: bg.texture = SKTexture(imageNamed: "Background2Level2")
-//                        
-//                        // Transição L2 -> L3 (Rua)
-//                    case 17: bg.texture = SKTexture(imageNamed: "TransitionLevel2ToRua_2")
-//                    case 20: bg.texture = SKTexture(imageNamed: "Background2Level3")
-//                        
-//                        // Transição L3 -> L4 (Esgoto)
-//                    case 26: bg.texture = SKTexture(imageNamed: "TransitionRuaToEsgoto_2")
-//                    case 29: bg.texture = SKTexture(imageNamed: "Background2Level4")
-//                        
-//                    default: break
-//                    }
-//                }
-//                else if bg.name == "bg_2" {
-//                    switch totalRecycles {
-//                        // Finais dos blocos (O bg_2 não usa transição, ele já entra definitivo)
-//                    case 9:  bg.texture = SKTexture(imageNamed: "Background3Level2")
-//                    case 18: bg.texture = SKTexture(imageNamed: "Background3Level3")
-//                    case 27: bg.texture = SKTexture(imageNamed: "Background3Level4")
-//                        
-//                    default: break
-//                    }
-//                }
+                // 3. Troca de textura escalável usando Switch
+                if bg.name == "bg_0" {
+                    switch totalRecycles {
+                    case 1: bg.texture = SKTexture(imageNamed: "Scene6")
+                    case 6: bg.texture = SKTexture(image: .scene11) // 2ª vez que o bg_0 dá a volta
+                    default: break
+                    }
+                }
+                else if bg.name == "bg_1" {
+                    switch totalRecycles {
+                    case 2: bg.texture = SKTexture(image: .scene7)
+                    default: break
+                    }
+                }
+                else if bg.name == "bg_2" {
+                    switch totalRecycles {
+                    case 3: bg.texture = SKTexture(image: .scene8)
+                    default: break
+                    }
+                }
+                else if bg.name == "bg_3" {
+                    switch totalRecycles {
+                    case 4: bg.texture = SKTexture(image: .scene9)
+                    default: break
+                    }
+                }
+                else if bg.name == "bg_4" {
+                    switch totalRecycles {
+                    case 5: bg.texture = SKTexture(image: .scene10)
+                    default: break
+                    }
+                }
+                
             }
         }
     }

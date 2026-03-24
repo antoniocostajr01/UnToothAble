@@ -4,6 +4,7 @@
 //
 //  Orquestra a cena: ECS, loop de jogo, sincronização SpriteKit ↔ ECS. Setup e HUD/colisões/game over estão em tipos dedicados.
 import SpriteKit
+import UIKit
 
 class GameScene: SKScene, SKPhysicsContactDelegate {
     
@@ -15,6 +16,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     var playerEntity: Entity?
     
     var gameManager: GameManager?
+    
+    private var isPlayerOnGround = false
     
     private var currentScenarioSpeed: CGFloat = GameConstants.Physics.scenarioSpeed
     
@@ -32,11 +35,24 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     var lastUpdateTime: TimeInterval = 0
     var currentPhase: Int = 1
     
+    
     private weak var lastHitObstacleNode: SKNode?
     var fixedPlayerX: CGFloat = 0
     private var hasPerformedInitialSetup = false
 
     var isGrounded: Bool = false
+
+    // MARK: - Haptics
+    private let jumpHaptic = UIImpactFeedbackGenerator(style: .light)
+    private let jetpackHaptic = UIImpactFeedbackGenerator(style: .soft)
+    private let hitHaptic = UINotificationFeedbackGenerator()
+
+    private var jetpackHapticAccumulator: TimeInterval = 0
+    private let jetpackHapticInterval: TimeInterval = 0.12
+
+    private var isHapticsEnabled: Bool {
+        UserDefaults.standard.object(forKey: "hapticsEnabled") as? Bool ?? true
+    }
 
     // Pontuação
     private var score: Int = 0
@@ -60,8 +76,11 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         size = view.bounds.size
         backgroundColor = .clear
 
+        view.ignoresSiblingOrder = true
+        
         physicsWorld.gravity = CGVector(dx: 0, dy: GameConstants.Physics.gravityY)
         physicsWorld.contactDelegate = self
+        prepareHaptics()
 
         if hasPerformedInitialSetup {
             return
@@ -88,11 +107,37 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         setupGround()
         setupPhysicsGround()
         setupPlayer()
+        warmUpPhysicsAndTextures()
         gameHUD.addTo(scene: self)
         gameHUD.update(score: score, bestScore: LocalScoreStore.shared.bestScore)
         
         obstacleSpawnAccumulator = 0
         bossSpawnAccumulator = 0
+    }
+    
+    private func warmUpPhysicsAndTextures() {
+        // Força o SpriteKit a compilar o shader do physics body
+        // criando e removendo um contato simulado
+        let dummy = SKSpriteNode(color: .clear, size: CGSize(width: 1, height: 1))
+        dummy.physicsBody = SKPhysicsBody(circleOfRadius: 1)
+        dummy.physicsBody?.categoryBitMask = 0
+        dummy.alpha = 0
+        addChild(dummy)
+
+        let wait = SKAction.wait(forDuration: 0.1)
+        let remove = SKAction.removeFromParent()
+        dummy.run(SKAction.sequence([wait, remove]))
+
+        // Pré-aquece as texturas do player na GPU
+        let preload = [
+            GameConstants.Assets.playerFrame1,
+            GameConstants.Assets.playerFrame2,
+            GameConstants.Assets.playerFrame3,
+            GameConstants.Assets.playerFrame4,
+            GameConstants.Assets.playerFrame5,
+        ].map { SKTexture(imageNamed: $0) }
+
+        SKTexture.preload(preload) {}
     }
     
     private func prepareForReuse() {
@@ -109,6 +154,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         scoreAccumulator = 0
         obstacleSpawnAccumulator = 0
         bossSpawnAccumulator = 0
+        jetpackHapticAccumulator = 0
     }
 
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
@@ -117,11 +163,14 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         guard let entity = playerEntity,
               var jetPack = ecsWorld.component(JetPackComponent.self, for: entity) else { return }
 
-        guard jetPack.currentFuel >= jetPack.ignitionCost else { return }
+        if jetPack.currentFuel >= jetPack.ignitionCost {
+            triggerJumpHaptic()
 
-        jetPack.isThrusting = true
-        jetPack.currentFuel -= jetPack.ignitionCost
-        ecsWorld.addComponent(jetPack, to: entity)
+            jetPack.isThrusting = true
+            jetPack.currentFuel -= jetPack.ignitionCost
+
+            ecsWorld.addComponent(jetPack, to: entity)
+        }
     }
 
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
@@ -130,6 +179,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         jetPack.isThrusting = false
         ecsWorld.addComponent(jetPack, to: entity)
+        jetpackHapticAccumulator = 0
     }
 
     override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
@@ -162,6 +212,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         syncPlayerPositionFromNode()
         scrollSystem.update(world: ecsWorld, deltaTime: deltaTime, scenarioSpeed: currentSpeed)
         jetPackSystem.update(world: ecsWorld, deltaTime: deltaTime)
+        updateJetpackHaptics(deltaTime: deltaTime)
         animationSystem.update(world: ecsWorld, deltaTime: deltaTime)
         syncPositionToNodes()
         updateFuelBarVisuals()
@@ -254,8 +305,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         drop.physicsBody = SKPhysicsBody(circleOfRadius: dropRadius)
         drop.physicsBody?.isDynamic = true
         drop.physicsBody?.categoryBitMask = GameConstants.PhysicsCategory.particle
-        drop.physicsBody?.collisionBitMask = GameConstants.PhysicsCategory.ground
-        drop.physicsBody?.contactTestBitMask = GameConstants.PhysicsCategory.ground
+        drop.physicsBody?.collisionBitMask = 0
+        drop.physicsBody?.contactTestBitMask = 0
 
         worldNode.addChild(drop)
 
@@ -337,6 +388,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
 
         obstacleSpawnAccumulator = 0
         bossSpawnAccumulator = 0
+        jetpackHapticAccumulator = 0
 
         player.physicsBody?.isDynamic = true
         player.position.x = fixedPlayerX
@@ -349,40 +401,54 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     // MARK: - Colisões
     func didBegin(_ contact: SKPhysicsContact) {
-        
         let collision = contact.bodyA.categoryBitMask | contact.bodyB.categoryBitMask
 
+        // partícula continua síncrona — é só remoção, sem ECS
         if collision == (GameConstants.PhysicsCategory.particle | GameConstants.PhysicsCategory.ground) {
-             let particleNode = contact.bodyA.categoryBitMask == GameConstants.PhysicsCategory.particle ? contact.bodyA.node : contact.bodyB.node
-             particleNode?.removeFromParent()
-             return
+            let particleNode = contact.bodyA.categoryBitMask == GameConstants.PhysicsCategory.particle
+                ? contact.bodyA.node
+                : contact.bodyB.node
+            particleNode?.removeFromParent()
+            return
         }
 
-        switch CollisionHandler.handle(contact) {
-        case .groundTouched:
-            isGrounded = true
-            if let entity = playerEntity, var jetPack = ecsWorld.component(JetPackComponent.self, for: entity) {
-                jetPack.isRecharging = true
-                ecsWorld.addComponent(jetPack, to: entity)
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+
+            switch CollisionHandler.handle(contact) {
+            case .groundTouched:
+                isGrounded = true
+                if let entity = playerEntity, var jetPack = ecsWorld.component(JetPackComponent.self, for: entity) {
+                    jetPack.isRecharging = true
+                    ecsWorld.addComponent(jetPack, to: entity)
+                }
+
+            case .groundLeft:
+                isGrounded = false
+                if let entity = playerEntity, var jetPack = ecsWorld.component(JetPackComponent.self, for: entity) {
+                    jetPack.isRecharging = false
+                    ecsWorld.addComponent(jetPack, to: entity)
+                }
+
+            case .obstacleHit:
+                let obstacleNode = obstacleNode(from: contact)
+                gameOver(hitObstacleNode: obstacleNode)
+
+            case .none:
+                break
             }
-
-        case .groundLeft:
-            isGrounded = false
-            if let entity = playerEntity, var jetPack = ecsWorld.component(JetPackComponent.self, for: entity) {
-                jetPack.isRecharging = false
-                ecsWorld.addComponent(jetPack, to: entity)
-            }
-
-        case .obstacleHit:
-            let obstacleNode = obstacleNode(from: contact)
-            gameOver(hitObstacleNode: obstacleNode)
-
-        case .none:
-            break
         }
     }
-
+    
     func didEnd(_ contact: SKPhysicsContact) {
+        let collision = contact.bodyA.categoryBitMask | contact.bodyB.categoryBitMask
+
+        if collision == (GameConstants.PhysicsCategory.player | GameConstants.PhysicsCategory.ground) {
+            DispatchQueue.main.async { [weak self] in
+                self?.isPlayerOnGround = false
+            }
+        }
+
         switch CollisionHandler.handleEnd(contact) {
         case .groundLeft:
             if let entity = playerEntity, var jetPack = ecsWorld.component(JetPackComponent.self, for: entity) {
@@ -399,6 +465,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
 
         isGameOver = true
         lastHitObstacleNode = hitObstacleNode
+        jetpackHapticAccumulator = 0
 
         player.physicsBody?.categoryBitMask = 0
         player.physicsBody?.velocity = .zero
@@ -427,6 +494,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         scoreAccumulator = 0
         obstacleSpawnAccumulator = 0
         bossSpawnAccumulator = 0
+        jetpackHapticAccumulator = 0
         
         worldNode.removeAllChildren()
         groundPieces.removeAll()
@@ -439,10 +507,58 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         ecsWorld = World()
         scrollSystem = ScrollSystem(scenarioSpeed: GameConstants.Physics.scenarioSpeed)
         
+        childNode(withName: "physicsGround")?.removeFromParent() // ← adicione isso
+        
         background.reset(in: size)
         setupGround()
         setupPhysicsGround()
         setupPlayer()
         gameHUD.update(score: score, bestScore: LocalScoreStore.shared.bestScore)
+        prepareHaptics()
+    }
+}
+
+// MARK: - Haptics
+private extension GameScene {
+    func prepareHaptics() {
+        guard isHapticsEnabled else { return }
+        jumpHaptic.prepare()
+        jetpackHaptic.prepare()
+        hitHaptic.prepare()
+    }
+
+    func triggerJumpHaptic() {
+        guard isHapticsEnabled else { return }
+        jumpHaptic.impactOccurred(intensity: 0.75)
+        jumpHaptic.prepare()
+    }
+
+    func triggerJetpackHaptic() {
+        guard isHapticsEnabled else { return }
+        jetpackHaptic.impactOccurred(intensity: 0.45)
+        jetpackHaptic.prepare()
+    }
+
+    func triggerHitHaptic() {
+        guard isHapticsEnabled else { return }
+        hitHaptic.notificationOccurred(.error)
+        hitHaptic.prepare()
+    }
+
+    func updateJetpackHaptics(deltaTime: TimeInterval) {
+        guard let entity = playerEntity,
+              let jetPack = ecsWorld.component(JetPackComponent.self, for: entity) else { return }
+
+        guard jetPack.isThrusting, jetPack.currentFuel > 0 else {
+            jetpackHapticAccumulator = 0
+            return
+        }
+
+        jetpackHapticAccumulator += deltaTime
+
+        if jetpackHapticAccumulator >= jetpackHapticInterval {
+            jetpackHapticAccumulator = 0
+            triggerJetpackHaptic()
+        }
     }
 }

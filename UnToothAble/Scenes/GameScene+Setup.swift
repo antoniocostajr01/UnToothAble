@@ -19,16 +19,26 @@ extension GameScene {
         let groundY = GameConstants.Layout.groundBaseY
 
         let physicsGround = SKNode()
+        physicsGround.name = "physicsGround" // ← adicione isso
         physicsGround.position = CGPoint(x: size.width / 2, y: groundY)
-        physicsGround.physicsBody = SKPhysicsBody(rectangleOf: CGSize(width: size.width * 2, height: groundHeight))
-        physicsGround.physicsBody?.isDynamic = false
-        physicsGround.physicsBody?.categoryBitMask = GameConstants.PhysicsCategory.ground
-        physicsGround.physicsBody?.contactTestBitMask = GameConstants.PhysicsCategory.player
-        physicsGround.physicsBody?.collisionBitMask = GameConstants.PhysicsCategory.player
+
+        let body = SKPhysicsBody(
+            rectangleOf: CGSize(width: size.width * 2, height: groundHeight)
+        )
+        
+        body.isDynamic = false
+        body.friction = 0.0          // evita que o player "grude" lateralmente
+        body.restitution = 0.0 
+        
+        body.categoryBitMask = GameConstants.PhysicsCategory.ground
+        body.contactTestBitMask = GameConstants.PhysicsCategory.player
+        body.collisionBitMask = 0
+        
+        physicsGround.physicsBody = body
 
         addChild(physicsGround)
     }
-
+    
     func setupPlayer() {
         fixedPlayerX = size.width * 0.25
 
