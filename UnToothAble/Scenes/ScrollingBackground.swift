@@ -61,12 +61,7 @@ final class ScrollingBackground: SKNode {
                 switch totalRecycles{
                 case 4:
                     onLevelUp?()
-//                case 11:
-//                    onLevelUp?()
-//                case 17:
-//                    onLevelUp?()
-//                case 26:
-//                    onLevelUp?()
+
                 default:
                     break
                 }

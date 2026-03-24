@@ -8,5 +8,5 @@
 import Foundation
 
 enum GameDelegator {
-    case home, game, shop, gameOver
+    case home, game, shop, gameOver, loading
 }

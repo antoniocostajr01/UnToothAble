@@ -16,6 +16,7 @@ struct UnToothAbleApp: App {
         Task { @MainActor in
             RewardedAdManager.shared.preloadAd()
         }
+        AssetLoader.preload()
     }
 
     var body: some Scene {

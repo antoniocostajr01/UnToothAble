@@ -16,6 +16,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     var gameManager: GameManager?
     
+    private var isPlayerOnGround = false
+    
     private var currentScenarioSpeed: CGFloat = GameConstants.Physics.scenarioSpeed
     
     // Nós da cena
@@ -29,6 +31,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     var isGameOver = false
     var lastUpdateTime: TimeInterval = 0
     var currentPhase: Int = 1
+    
     
     private weak var lastHitObstacleNode: SKNode?
     var fixedPlayerX: CGFloat = 0
@@ -56,6 +59,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         size = view.bounds.size
         backgroundColor = .clear
 
+        view.ignoresSiblingOrder = true
+        
         physicsWorld.gravity = CGVector(dx: 0, dy: GameConstants.Physics.gravityY)
         physicsWorld.contactDelegate = self
 
@@ -84,11 +89,37 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         setupGround()
         setupPhysicsGround()
         setupPlayer()
+        warmUpPhysicsAndTextures()
         gameHUD.addTo(scene: self)
         gameHUD.update(score: score, bestScore: LocalScoreStore.shared.bestScore)
         
         obstacleSpawnAccumulator = 0
         bossSpawnAccumulator = 0
+    }
+    
+    private func warmUpPhysicsAndTextures() {
+        // Força o SpriteKit a compilar o shader do physics body
+        // criando e removendo um contato simulado
+        let dummy = SKSpriteNode(color: .clear, size: CGSize(width: 1, height: 1))
+        dummy.physicsBody = SKPhysicsBody(circleOfRadius: 1)
+        dummy.physicsBody?.categoryBitMask = 0
+        dummy.alpha = 0
+        addChild(dummy)
+
+        let wait = SKAction.wait(forDuration: 0.1)
+        let remove = SKAction.removeFromParent()
+        dummy.run(SKAction.sequence([wait, remove]))
+
+        // Pré-aquece as texturas do player na GPU
+        let preload = [
+            GameConstants.Assets.playerFrame1,
+            GameConstants.Assets.playerFrame2,
+            GameConstants.Assets.playerFrame3,
+            GameConstants.Assets.playerFrame4,
+            GameConstants.Assets.playerFrame5,
+        ].map { SKTexture(imageNamed: $0) }
+
+        SKTexture.preload(preload) {}
     }
     
     private func prepareForReuse() {
@@ -236,8 +267,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         drop.physicsBody = SKPhysicsBody(circleOfRadius: dropRadius)
         drop.physicsBody?.isDynamic = true
         drop.physicsBody?.categoryBitMask = GameConstants.PhysicsCategory.particle
-        drop.physicsBody?.collisionBitMask = GameConstants.PhysicsCategory.ground
-        drop.physicsBody?.contactTestBitMask = GameConstants.PhysicsCategory.ground
+        drop.physicsBody?.collisionBitMask = 0
+        drop.physicsBody?.contactTestBitMask = 0
 
         worldNode.addChild(drop)
 
@@ -332,28 +363,50 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     // MARK: - Colisões
     func didBegin(_ contact: SKPhysicsContact) {
-        
         let collision = contact.bodyA.categoryBitMask | contact.bodyB.categoryBitMask
 
+        // partícula continua síncrona — é só remoção, sem ECS
         if collision == (GameConstants.PhysicsCategory.particle | GameConstants.PhysicsCategory.ground) {
-             let particleNode = contact.bodyA.categoryBitMask == GameConstants.PhysicsCategory.particle ? contact.bodyA.node : contact.bodyB.node
-             particleNode?.removeFromParent()
-             return
+            let particleNode = contact.bodyA.categoryBitMask == GameConstants.PhysicsCategory.particle
+                ? contact.bodyA.node
+                : contact.bodyB.node
+            particleNode?.removeFromParent()
+            return
         }
 
-        switch CollisionHandler.handle(contact) {
-        case .groundTouched:
-            if let entity = playerEntity, var jetPack = ecsWorld.component(JetPackComponent.self, for: entity) {
-                jetPack.currentFuel = jetPack.maxFuel
-                ecsWorld.addComponent(jetPack, to: entity)
+        // tudo que mexe no ECS vai para a main thread
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+
+            switch CollisionHandler.handle(contact) {
+            case .groundTouched:
+                if !self.isPlayerOnGround {
+                    self.isPlayerOnGround = true
+
+                    if let entity = self.playerEntity,
+                       var jetPack = self.ecsWorld.component(JetPackComponent.self, for: entity) {
+                        jetPack.currentFuel = jetPack.maxFuel
+                        self.ecsWorld.addComponent(jetPack, to: entity)
+                    }
+                }
+
+            case .obstacleHit:
+                let obstacleNode = self.obstacleNode(from: contact)
+                self.gameOver(hitObstacleNode: obstacleNode)
+
+            case .none:
+                break
             }
+        }
+    }
+    
+    func didEnd(_ contact: SKPhysicsContact) {
+        let collision = contact.bodyA.categoryBitMask | contact.bodyB.categoryBitMask
 
-        case .obstacleHit:
-            let obstacleNode = obstacleNode(from: contact)
-            gameOver(hitObstacleNode: obstacleNode)
-
-        case .none:
-            break
+        if collision == (GameConstants.PhysicsCategory.player | GameConstants.PhysicsCategory.ground) {
+            DispatchQueue.main.async { [weak self] in
+                self?.isPlayerOnGround = false
+            }
         }
     }
 
@@ -387,6 +440,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         ecsWorld = World()
         scrollSystem = ScrollSystem(scenarioSpeed: GameConstants.Physics.scenarioSpeed)
+        
+        childNode(withName: "physicsGround")?.removeFromParent() // ← adicione isso
         
         background.reset(in: size)
         setupGround()
