@@ -8,7 +8,7 @@ struct Settings: View {
     @State private var showCredits = false
 
     @State private var showHistoryAlways = false
-    @State private var musicEnabled = false
+    @State private var musicEnabled = UserDefaults.standard.bool(forKey: "musicEnabled")
     @State private var hapticsEnabled = false
 
     var body: some View {
@@ -32,7 +32,15 @@ struct Settings: View {
                     SettingsRow(
                         title: " MUSIC ",
                         isOn: $musicEnabled
-                    )
+                    ) { isOn in
+                        UserDefaults.standard.set(isOn, forKey: "musicEnabled") 
+
+                        if isOn {
+                            AudioManager.shared.playMusic(named: "backgroundSong.mp3")
+                        } else {
+                            AudioManager.shared.toggleMute()
+                        }
+                    }
 
                     SettingsRow(
                         title: " HAPTICS ",
@@ -50,6 +58,7 @@ struct Settings: View {
                             showCredits = true
                         }
                     }
+                    .frame(maxWidth: .infinity, alignment: .center)
 
                     Spacer()
                 }
@@ -93,10 +102,12 @@ struct SettingsRow: View {
     let title: String
     @Binding var isOn: Bool
     var isHapticsOption: Bool = false
+    var onToggle: ((Bool) -> Void)? = nil
 
     var body: some View {
         Button {
             isOn.toggle()
+            onToggle?(isOn) 
 
             if isHapticsOption && isOn {
                 let generator = UIImpactFeedbackGenerator(style: .medium)

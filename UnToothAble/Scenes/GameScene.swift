@@ -4,6 +4,7 @@
 //
 //  Orquestra a cena: ECS, loop de jogo, sincronização SpriteKit ↔ ECS. Setup e HUD/colisões/game over estão em tipos dedicados.
 import SpriteKit
+import UIKit
 
 class GameScene: SKScene, SKPhysicsContactDelegate {
     
@@ -47,6 +48,14 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     private var bossSpawnAccumulator: TimeInterval = 0
     private let bossSpawnInterval: TimeInterval = 10.0
     
+    // Haptics
+    private let jumpHaptic = UIImpactFeedbackGenerator(style: .light)
+    private let jetpackHaptic = UIImpactFeedbackGenerator(style: .soft)
+    private let hitHaptic = UINotificationFeedbackGenerator()
+
+    private var jetpackHapticAccumulator: TimeInterval = 0
+    private let jetpackHapticInterval: TimeInterval = 0.12
+    
     // Responsabilidades extraídas
     private let gameHUD = GameHUD()
            
@@ -58,6 +67,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
 
         physicsWorld.gravity = CGVector(dx: 0, dy: GameConstants.Physics.gravityY)
         physicsWorld.contactDelegate = self
+        prepareHaptics()
+
 
         if hasPerformedInitialSetup {
             return
@@ -114,8 +125,10 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
               var jetPack = ecsWorld.component(JetPackComponent.self, for: entity) else { return }
               
         if jetPack.currentFuel >= jetPack.ignitionCost {
+            triggerJumpHaptic()
             jetPack.isThrusting = true
             jetPack.currentFuel -= jetPack.ignitionCost
+            
             
             if let body = player.physicsBody {
                 let tapVelocityBurst: CGFloat = 700.0
@@ -138,6 +151,51 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
 
     override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
         touchesEnded(touches, with: event)
+    }
+    
+    private var isHapticsEnabled: Bool {
+        UserDefaults.standard.object(forKey: "hapticsEnabled") as? Bool ?? true
+    }
+
+    private func prepareHaptics() {
+        jumpHaptic.prepare()
+        jetpackHaptic.prepare()
+        hitHaptic.prepare()
+    }
+
+    private func triggerJumpHaptic() {
+        guard isHapticsEnabled else { return }
+        jumpHaptic.impactOccurred(intensity: 0.75)
+        jumpHaptic.prepare()
+    }
+
+    private func triggerJetpackHaptic() {
+        guard isHapticsEnabled else { return }
+        jetpackHaptic.impactOccurred(intensity: 0.45)
+        jetpackHaptic.prepare()
+    }
+
+    private func triggerHitHaptic() {
+        guard isHapticsEnabled else { return }
+        hitHaptic.notificationOccurred(.error)
+        hitHaptic.prepare()
+    }
+
+    private func updateJetpackHaptics(deltaTime: TimeInterval) {
+        guard let entity = playerEntity,
+              let jetPack = ecsWorld.component(JetPackComponent.self, for: entity) else { return }
+
+        guard jetPack.isThrusting, jetPack.currentFuel > 0 else {
+            jetpackHapticAccumulator = 0
+            return
+        }
+
+        jetpackHapticAccumulator += deltaTime
+
+        if jetpackHapticAccumulator >= jetpackHapticInterval {
+            jetpackHapticAccumulator = 0
+            triggerJetpackHaptic()
+        }
     }
     
     // MARK: - Game loop
@@ -166,6 +224,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         syncPlayerPositionFromNode()
         scrollSystem.update(world: ecsWorld, deltaTime: deltaTime, scenarioSpeed: currentSpeed)
         jetPackSystem.update(world: ecsWorld, deltaTime: deltaTime)
+        updateJetpackHaptics(deltaTime: deltaTime)
         animationSystem.update(world: ecsWorld, deltaTime: deltaTime)
         syncPositionToNodes()
         updateFuelBarVisuals()
@@ -349,6 +408,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             }
 
         case .obstacleHit:
+            triggerHitHaptic()
             let obstacleNode = obstacleNode(from: contact)
             gameOver(hitObstacleNode: obstacleNode)
 
