@@ -23,8 +23,10 @@ struct Root: View {
                 Game()
             case .shop:
                 Shop()
+                
             case .loading:
                 Loading()
+                
             }
 
             if gameManager.currentScene == .gameOver {
