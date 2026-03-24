@@ -4,7 +4,6 @@
 //
 //  Created by Rafael Toneto on 16/03/26.
 //
-
 import SwiftUI
 import UIKit
 
@@ -44,7 +43,7 @@ struct GameOver: View {
                     HStack(spacing: 20) {
                         statCard(
                             title: " BEST ",
-                            value: "\(bestScore) M",
+                            value: "\(bestScore) M"
                         )
 
                         statCard(
@@ -73,8 +72,6 @@ struct GameOver: View {
                                     .frame(width: 24, height: 27)
                                     .offset(x: 8, y: -14)
                             }
-
-                                .frame(height: 16)
 
                             Button {
                                 gameManager.markReviveAsUsed()
@@ -116,14 +113,12 @@ struct GameOver: View {
                         .frame(height: isFirstDeathInRun ? 18 : 34)
                 }
                 .frame(width: 420, height: 300)
-
-                .overlay(alignment: .top){
+                .overlay(alignment: .top) {
                     Text(" SCORE ")
                         .font(.bangers(38))
                         .foregroundStyle(.white)
                         .customStroke(color: Color(.lightBlueStroke), width: 1)
                         .padding(.top, 66)
-    //                    .offset(y: -114)
                 }
             }
             .offset(y: -24)
@@ -165,23 +160,26 @@ struct GameOver: View {
         guard let rootVC = topViewController() else { return }
 
         gameManager.isShowingRewardedAd = true
+        gameManager.gameScene.stopAllHaptics()
+        AudioManager.shared.pauseMusic()
 
         RewardedAdManager.shared.presentAd(
             from: rootVC,
             onRewardEarned: {
                 gameManager.markReviveAsUsed()
                 gameManager.isShowingRewardedAd = false
+                gameManager.gameScene.resumeHaptics()
+                AudioManager.shared.resumeMusic()
                 onContinue()
                 gameManager.goToScene(.game)
-                AudioManager.shared.toggleMute()
             },
             onFinishedWithoutReward: {
                 gameManager.isShowingRewardedAd = false
                 gameManager.refreshRewardedAvailability()
+                AudioManager.shared.resumeMusic()
             }
         )
     }
-
     private func topViewController(
         base: UIViewController? = UIApplication.shared.connectedScenes
             .compactMap { $0 as? UIWindowScene }
