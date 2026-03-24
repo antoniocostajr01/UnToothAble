@@ -16,7 +16,7 @@ struct PauseMenu: View {
 
     var body: some View {
         ZStack {
-            Color.black.opacity(0.5)
+            Color.black.opacity(0.75)
                 .ignoresSafeArea()
 
             ZStack {
@@ -92,8 +92,11 @@ struct PauseMenu: View {
                 }
             }
             .overlay(alignment: .top) {
-                Image(.paused)
-                    .offset(x: 10, y: -30)
+                Text(" PAUSED! ")
+                    .font(.bangers(34))
+                    .foregroundStyle(.white)
+                    .customStroke(color: Color(.lightBlueStroke), width: 1)
+                    .padding(.top, 3)
             }
         }
     }
