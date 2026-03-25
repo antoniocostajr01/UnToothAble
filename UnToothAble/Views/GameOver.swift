@@ -34,7 +34,7 @@ struct GameOver: View {
                 Image(popup)
                     .resizable()
                     .scaledToFit()
-                    .frame(width: 356, height: 293)
+                    .frame(width: 356, height: 340)
 
                 VStack(spacing: 0) {
                     Spacer()
@@ -53,10 +53,10 @@ struct GameOver: View {
                     }
 
                     Spacer()
-                        .frame(height: 27)
+                        .frame(height: 20)
 
                     if isFirstDeathInRun {
-                        VStack(spacing: 18) {
+                        VStack(spacing: 0) {
                             CustomButton(
                                 label: " Continue? (Ad) ",
                                 state: .normal,
@@ -80,6 +80,7 @@ struct GameOver: View {
                                     .font(.bangers(16))
                                     .foregroundStyle(.white)
                                     .customStroke(color: Color(.darkBlueStroke), width: 1)
+                                    .padding(.top, 8)
                             }
                             .buttonStyle(.plain)
                         }
@@ -112,6 +113,7 @@ struct GameOver: View {
                     Spacer()
                         .frame(height: isFirstDeathInRun ? 18 : 34)
                 }
+                .padding(.top, 8)
                 .frame(width: 420, height: 300)
                 .overlay(alignment: .top) {
                     Text(" SCORE ")
@@ -199,3 +201,4 @@ struct GameOver: View {
         return base
     }
 }
+
