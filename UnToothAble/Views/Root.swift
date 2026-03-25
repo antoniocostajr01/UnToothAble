@@ -17,8 +17,6 @@ struct Root: View {
             switch gameManager.currentScene {
             case .home:
                 Home()
-//            case .settings:
-//                Settings()
             case .game, .gameOver:
                 Game()
             case .shop:
