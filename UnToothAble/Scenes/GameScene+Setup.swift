@@ -151,9 +151,8 @@ extension GameScene {
     private func spawnBossProjectile(from position: CGPoint) {
         if isGameOver { return }
         
-        let projectile = SKShapeNode(circleOfRadius: 12)
-        projectile.fillColor = .white
-        projectile.strokeColor = .clear
+        let projectile = SKSpriteNode(imageNamed: GameConstants.Assets.fairyAttack)
+        projectile.setScale(0.07)
         projectile.position = position
 
         projectile.physicsBody = SKPhysicsBody(circleOfRadius: 8)
