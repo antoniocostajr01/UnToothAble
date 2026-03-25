@@ -107,6 +107,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         setupPhysicsGround()
         setupPlayer()
         warmUpPhysicsAndTextures()
+        startSpawningAerialObstacles()
         gameHUD.addTo(scene: self)
         gameHUD.update(score: score, bestScore: LocalScoreStore.shared.bestScore)
         
@@ -398,6 +399,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         player.physicsBody?.velocity = .zero
         player.physicsBody?.applyImpulse(CGVector(dx: 0, dy: 80))
 
+        startSpawningAerialObstacles()
+
         isGameOver = false
         lastUpdateTime = 0
         prepareHaptics()
@@ -519,6 +522,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         setupGround()
         setupPhysicsGround()
         setupPlayer()
+        startSpawningAerialObstacles()
         gameHUD.update(score: score, bestScore: LocalScoreStore.shared.bestScore)
         prepareHaptics()
     }

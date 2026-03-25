@@ -172,10 +172,10 @@ extension GameScene {
         if isGameOver { return }
         
         let projectile = SKSpriteNode(imageNamed: GameConstants.Assets.fairyAttack)
-        projectile.setScale(0.07)
+        projectile.size = CGSize(width: 90, height: 90)
         projectile.position = position
 
-        projectile.physicsBody = SKPhysicsBody(circleOfRadius: 8)
+        projectile.physicsBody = SKPhysicsBody(rectangleOf: CGSize(width: 30, height: 30))
         projectile.physicsBody?.isDynamic = false
         projectile.physicsBody?.categoryBitMask = GameConstants.PhysicsCategory.projectile
         projectile.physicsBody?.contactTestBitMask = GameConstants.PhysicsCategory.player
@@ -272,7 +272,10 @@ extension GameScene {
     func spawnAerialObstacle() {
         if isGameOver { return }
 
-        let aerialObstacle = SKSpriteNode(color: .systemYellow, size: CGSize(width: 20, height: 20))
+        let aerialObstacle = SKSpriteNode(imageNamed: GameConstants.Assets.flyingObstacleFrame1)
+        aerialObstacle.name = "aerialObstacle"
+        aerialObstacle.size = CGSize(width: 100, height: 100)
+
 
         let minY = GameConstants.Layout.groundBaseY + 80
         let maxY = size.height - 50
@@ -281,8 +284,13 @@ extension GameScene {
 
         let spawnPosition = CGPoint(x: randomX, y: randomY)
         aerialObstacle.position = spawnPosition
-        
-        aerialObstacle.physicsBody = SKPhysicsBody(rectangleOf: aerialObstacle.size)
+
+        let texture1 = SKTexture(imageNamed: GameConstants.Assets.flyingObstacleFrame1)
+        let texture2 = SKTexture(imageNamed: GameConstants.Assets.flyingObstacleFrame2)
+        let flapAnimation = SKAction.animate(with: [texture1, texture2], timePerFrame: 0.2)
+        aerialObstacle.run(.repeatForever(flapAnimation), withKey: "bossFlap")
+
+        aerialObstacle.physicsBody = SKPhysicsBody(circleOfRadius: 20)
         aerialObstacle.physicsBody?.isDynamic = false
         aerialObstacle.physicsBody?.categoryBitMask = GameConstants.PhysicsCategory.obstacle
         aerialObstacle.physicsBody?.contactTestBitMask = GameConstants.PhysicsCategory.player
