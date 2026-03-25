@@ -34,7 +34,7 @@ final class GameHUD {
         distanceBackground.anchorPoint = CGPoint(x: 0, y: 1)
         bestBackground.anchorPoint = CGPoint(x: 0, y: 1)
 
-        distanceBackground.size = CGSize(width: 212, height: 29)
+        distanceBackground.size = CGSize(width: 150, height: 29)
         bestBackground.size = CGSize(width: 150, height: 28)
 
         distanceBackground.position = CGPoint(x: 0, y: 0)

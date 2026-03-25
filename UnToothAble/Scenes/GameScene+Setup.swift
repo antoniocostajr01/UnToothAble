@@ -113,7 +113,7 @@ extension GameScene {
 
         let boss = SKSpriteNode(imageNamed: GameConstants.Assets.bossFrame1)
         boss.name = "boss"
-        boss.size = CGSize(width: 400, height: 400)
+        boss.size = CGSize(width: 200, height: 200)
         boss.position = startPos
 
         let texture1 = SKTexture(imageNamed: GameConstants.Assets.bossFrame1)
@@ -132,9 +132,9 @@ extension GameScene {
     private func startBossBehavior(for node: SKNode) {
         if isGameOver { return }
 
-        let limitBottom = GameConstants.Layout.groundBaseY + GameConstants.Layout.groundHeight + 0.0
+        let limitBottom = GameConstants.Layout.groundBaseY + GameConstants.Layout.groundHeight + 5.8
 
-        let limitTop = size.height - 150.0
+        let limitTop = size.height - 100.0
 
         let moveDown = SKAction.moveTo(y: limitBottom, duration: 2.0)
         moveDown.timingMode = .easeInEaseOut
