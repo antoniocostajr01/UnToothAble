@@ -11,10 +11,13 @@ extension GameScene {
     func pauseGame() {
         guard !isGameOver else { return }
         isPaused = true
+        view?.isPaused = true
     }
 
     func resumeGame() {
-        isPaused = false
+        guard !isGameOver else { return }
         lastUpdateTime = 0
+        view?.isPaused = false
+        isPaused = false
     }
 }

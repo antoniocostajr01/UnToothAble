@@ -45,4 +45,23 @@ class AudioManager {
         isMuted.toggle()
         player?.volume = isMuted ? 0 : targetMusicVolume
     }
+    
+    func pauseMusic() {
+        player?.pause()
+    }
+
+    func resumeMusic() {
+        guard let player = player else { return }
+        
+        if !player.isPlaying {
+            player.play()
+        }
+        
+        player.volume = isMuted ? 0 : targetMusicVolume
+    }
+
+    func stopMusic() {
+        player?.stop()
+        player = nil
+    }
 }
