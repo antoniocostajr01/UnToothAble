@@ -19,23 +19,34 @@ final class JetPackSystem {
 
             if jetPack.isThrusting && jetPack.currentFuel > 0 {
                 if let body = sprite.node.physicsBody {
-                    body.applyForce(CGVector(dx: 0.0, dy: jetPack.hoverForce * body.mass))
-                    
-                    let maxUpwardSpeed: CGFloat = 600.0
+                    body.applyForce(CGVector(dx: 0.0, dy: jetPack.hoverForce))
+
+                    let maxUpwardSpeed: CGFloat = 125.0
                     if body.velocity.dy > maxUpwardSpeed {
                         body.velocity.dy = maxUpwardSpeed
                     }
                 }
 
-                jetPack.currentFuel -= jetPack.fuelConsumptionRate
+                jetPack.currentFuel -= jetPack.fuelConsumptionRate * CGFloat(deltaTime)
 
                 if jetPack.currentFuel <= 0 {
                     jetPack.currentFuel = 0
                     jetPack.isThrusting = false
                 }
-
-                world.addComponent(jetPack, to: entity)
             }
+
+            if jetPack.isRecharging && jetPack.currentFuel < jetPack.maxFuel {
+                jetPack.currentFuel = min(
+                    jetPack.currentFuel + jetPack.rechargeRate * CGFloat(Float(deltaTime)),
+                    jetPack.maxFuel
+                )
+            }
+
+            if jetPack.currentFuel >= jetPack.maxFuel {
+                jetPack.isRecharging = false
+            }
+
+            world.addComponent(jetPack, to: entity)
         }
     }
 }

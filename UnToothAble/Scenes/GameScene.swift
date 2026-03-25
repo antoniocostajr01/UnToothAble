@@ -24,6 +24,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     let worldNode = SKNode()
     let player = SKSpriteNode(imageNamed: GameConstants.Assets.playerFrame1)
     var fuelBar: SKShapeNode!
+    var fuelBarBorder: SKShapeNode!
+    var fuelBarIcon: SKLabelNode!
     private let background = ScrollingBackground()
     
     // Estado
@@ -35,6 +37,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     private weak var lastHitObstacleNode: SKNode?
     var fixedPlayerX: CGFloat = 0
     private var hasPerformedInitialSetup = false
+
+    var isGrounded: Bool = false
 
     // MARK: - Haptics
     private let jumpHaptic = UIImpactFeedbackGenerator(style: .light)
@@ -155,20 +159,13 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         guard let entity = playerEntity,
               var jetPack = ecsWorld.component(JetPackComponent.self, for: entity) else { return }
-              
+
         if jetPack.currentFuel >= jetPack.ignitionCost {
             triggerJumpHaptic()
 
             jetPack.isThrusting = true
             jetPack.currentFuel -= jetPack.ignitionCost
-            
-            if let body = player.physicsBody {
-                let tapVelocityBurst: CGFloat = 700.0
-                if body.velocity.dy < tapVelocityBurst {
-                    body.velocity.dy = tapVelocityBurst
-                }
-            }
-            
+
             ecsWorld.addComponent(jetPack, to: entity)
         }
     }
@@ -258,9 +255,31 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
               let jetPack = ecsWorld.component(JetPackComponent.self, for: entity) else { return }
 
         let fuelRatio = max(jetPack.currentFuel / jetPack.maxFuel, 0.0)
+        let barHeight: CGFloat = 44
+        let fillHeight = barHeight * fuelRatio
+        let barWidth: CGFloat = 8
 
-        fuelBar?.yScale = fuelRatio
-        fuelBar?.fillColor = fuelRatio > 0.3 ? .systemGreen : .systemRed
+        fuelBar.removeFromParent()
+        let fillRect = CGRect(x: -barWidth / 2, y: 3, width: barWidth, height: max(fillHeight, 0))
+        fuelBar = SKShapeNode(rect: fillRect, cornerRadius: 4)
+        fuelBar.strokeColor = .clear
+        fuelBar.position = CGPoint(x: -45, y: -20)
+        player.addChild(fuelBar)
+
+        switch fuelRatio {
+        case 0.5...:
+            fuelBar.fillColor = UIColor(red: 0.22, green: 0.54, blue: 0.87, alpha: 1) // azul
+            fuelBarBorder.strokeColor = UIColor(red: 0.22, green: 0.54, blue: 0.87, alpha: 1)
+            fuelBarIcon.fontColor = .white
+        case 0.2..<0.5:
+            fuelBar.fillColor = UIColor(red: 0.94, green: 0.62, blue: 0.15, alpha: 1) // laranja
+            fuelBarBorder.strokeColor = UIColor(red: 0.94, green: 0.62, blue: 0.15, alpha: 1)
+            fuelBarIcon.fontColor = .white
+        default:
+            fuelBar.fillColor = UIColor(red: 0.89, green: 0.29, blue: 0.29, alpha: 1) // vermelho
+            fuelBarBorder.strokeColor = UIColor(red: 0.89, green: 0.29, blue: 0.29, alpha: 1)
+            fuelBarIcon.fontColor = UIColor(red: 0.89, green: 0.29, blue: 0.29, alpha: 1)
+        }
 
         if jetPack.isThrusting && jetPack.currentFuel > 0 {
             spawnLiquidParticle()
@@ -337,12 +356,10 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     }
 
     private func obstacleNode(from contact: SKPhysicsContact) -> SKNode? {
-        if contact.bodyA.categoryBitMask == GameConstants.PhysicsCategory.obstacle {
-            return contact.bodyA.node
-        }
-        if contact.bodyB.categoryBitMask == GameConstants.PhysicsCategory.obstacle {
-            return contact.bodyB.node
-        }
+        let masks: [UInt32] = [GameConstants.PhysicsCategory.obstacle,
+                               GameConstants.PhysicsCategory.projectile]
+        if masks.contains(contact.bodyA.categoryBitMask) { return contact.bodyA.node }
+        if masks.contains(contact.bodyB.categoryBitMask) { return contact.bodyB.node }
         return nil
     }
 
@@ -368,6 +385,15 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         jetpackHapticAccumulator = 0
         shouldAllowHaptics = true
 
+        worldNode.children.filter { $0.physicsBody?.categoryBitMask == GameConstants.PhysicsCategory.projectile }.forEach { $0.removeFromParent() }
+
+        if let bossNode = worldNode.childNode(withName: "boss") {
+            removeBossEntity(for: bossNode)
+            bossNode.removeFromParent()
+        }
+
+        player.physicsBody?.categoryBitMask = GameConstants.PhysicsCategory.player
+        player.physicsBody?.isDynamic = true
         player.position.x = fixedPlayerX
         player.physicsBody?.velocity = .zero
         player.physicsBody?.applyImpulse(CGVector(dx: 0, dy: 80))
@@ -394,14 +420,17 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
 
             switch CollisionHandler.handle(contact) {
             case .groundTouched:
-                if !self.isPlayerOnGround {
-                    self.isPlayerOnGround = true
+                isGrounded = true
+                if let entity = playerEntity, var jetPack = ecsWorld.component(JetPackComponent.self, for: entity) {
+                    jetPack.isRecharging = true
+                    ecsWorld.addComponent(jetPack, to: entity)
+                }
 
-                    if let entity = self.playerEntity,
-                       var jetPack = self.ecsWorld.component(JetPackComponent.self, for: entity) {
-                        jetPack.currentFuel = jetPack.maxFuel
-                        self.ecsWorld.addComponent(jetPack, to: entity)
-                    }
+            case .groundLeft:
+                isGrounded = false
+                if let entity = playerEntity, var jetPack = ecsWorld.component(JetPackComponent.self, for: entity) {
+                    jetPack.isRecharging = false
+                    ecsWorld.addComponent(jetPack, to: entity)
                 }
 
             case .obstacleHit:
@@ -424,6 +453,16 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                 self?.isPlayerOnGround = false
             }
         }
+
+        switch CollisionHandler.handleEnd(contact) {
+        case .groundLeft:
+            if let entity = playerEntity, var jetPack = ecsWorld.component(JetPackComponent.self, for: entity) {
+                jetPack.isRecharging = false
+                ecsWorld.addComponent(jetPack, to: entity)
+            }
+        default:
+            break
+        }
     }
 
     private func gameOver(hitObstacleNode: SKNode?) {
@@ -432,6 +471,18 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         isGameOver = true
         lastHitObstacleNode = hitObstacleNode
         jetpackHapticAccumulator = 0
+
+        player.physicsBody?.categoryBitMask = 0
+        player.physicsBody?.velocity = .zero
+        player.physicsBody?.isDynamic = false
+
+        if let hitNode = hitObstacleNode {
+            hitNode.removeAllActions()
+            hitNode.physicsBody?.velocity = .zero
+            hitNode.physicsBody?.isDynamic = false
+        }
+
+        worldNode.childNode(withName: "boss")?.removeAllActions()
 
         removeAction(forKey: "spawnObstacles")
         removeAction(forKey: "spawnAerialObstacles")
@@ -456,7 +507,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         player.removeFromParent()
         removeAllActions()
         lastUpdateTime = 0
-        
+        fuelBar.removeFromParent()
+        fuelBarIcon?.removeFromParent()
+
         ecsWorld = World()
         scrollSystem = ScrollSystem(scenarioSpeed: GameConstants.Physics.scenarioSpeed)
         
