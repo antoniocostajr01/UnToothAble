@@ -175,7 +175,7 @@ extension GameScene {
         projectile.size = CGSize(width: 90, height: 90)
         projectile.position = position
 
-        projectile.physicsBody = SKPhysicsBody(rectangleOf: CGSize(width: 30, height: 30))
+        projectile.physicsBody = SKPhysicsBody(rectangleOf: CGSize(width: 15, height: 15))
         projectile.physicsBody?.isDynamic = false
         projectile.physicsBody?.categoryBitMask = GameConstants.PhysicsCategory.projectile
         projectile.physicsBody?.contactTestBitMask = GameConstants.PhysicsCategory.player

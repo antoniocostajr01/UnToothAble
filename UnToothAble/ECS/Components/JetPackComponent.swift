@@ -20,11 +20,11 @@ struct JetPackComponent {
 
     init(hoverForce: CGFloat = 1500.0,
          maxFuel: CGFloat = 150.0,
-         fuelConsumptionRate: CGFloat = 30.0,
-         ignitionCost: CGFloat = 4.0,
+         fuelConsumptionRate: CGFloat = 40.0,
+         ignitionCost: CGFloat = 5.0,
          currentFuel: CGFloat = 150.0,
          isThrusting: Bool = false,
-         rechargeRate: CGFloat = 40.0,
+         rechargeRate: CGFloat = 30.0,
          isRecharging: Bool = false) {
 
         self.hoverForce = hoverForce

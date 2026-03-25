@@ -27,7 +27,8 @@ final class AssetLoader {
             // Boss
             GameConstants.Assets.bossFrame1,
             GameConstants.Assets.bossFrame2,
-            
+            GameConstants.Assets.fairyAttack,
+
             // Obstacles
             GameConstants.Assets.phase1ObstacleFrame1,
             GameConstants.Assets.phase1ObstacleFrame2,
@@ -36,7 +37,9 @@ final class AssetLoader {
             GameConstants.Assets.phase3ObstacleFrame1,
             GameConstants.Assets.phase3ObstacleFrame2,
             GameConstants.Assets.phase4ObstacleFrame1,
-            GameConstants.Assets.phase4ObstacleFrame2
+            GameConstants.Assets.phase4ObstacleFrame2,
+            GameConstants.Assets.flyingObstacleFrame1,
+            GameConstants.Assets.flyingObstacleFrame1
         ]
         
         let textures = textureNames.map { SKTexture(imageNamed: $0) }

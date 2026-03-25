@@ -125,16 +125,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         let wait = SKAction.wait(forDuration: 0.1)
         let remove = SKAction.removeFromParent()
         dummy.run(SKAction.sequence([wait, remove]))
-
-        let preload = [
-            GameConstants.Assets.playerFrame1,
-            GameConstants.Assets.playerFrame2,
-            GameConstants.Assets.playerFrame3,
-            GameConstants.Assets.playerFrame4,
-            GameConstants.Assets.playerFrame5,
-        ].map { SKTexture(imageNamed: $0) }
-
-        SKTexture.preload(preload) {}
     }
     
     private func prepareForReuse() {
