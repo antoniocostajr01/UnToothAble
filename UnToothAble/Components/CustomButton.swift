@@ -39,8 +39,8 @@ struct CustomButton: View {
         case .tooth:
             return .toothIcon
 
-        case .sound:
-            return .iconSound
+        case .hapticIco:
+            return .iconHaptics
 
         case .restart:
             return .iconRestart

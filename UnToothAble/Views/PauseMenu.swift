@@ -11,7 +11,7 @@ struct PauseMenu: View {
     @Environment(GameManager.self) var gameManager
     @Binding var showPauseMenu: Bool
 
-    @AppStorage("isSoundOn") private var isSoundOn: Bool = true
+    @AppStorage("isHapticOn") private var isHapticOn: Bool = true
     @AppStorage("isMusicOn") private var isMusicOn: Bool = true
 
     var body: some View {
@@ -26,13 +26,15 @@ struct PauseMenu: View {
                     VStack(spacing: 32) {
                         HStack(spacing: 40) {
                             Button {
-                                isSoundOn.toggle()
+                                isHapticOn.toggle()
                             } label: {
-                                Image(.iconSound)
+                                Image(.iconHaptics)
+                                    .resizable()
+                                    .scaledToFit()
                                     .frame(width: 24, height: 24)
                             }
                             .background(
-                                Image(isSoundOn ? .iconSelected : .iconNotSelected)
+                                Image(isHapticOn ? .iconSelected : .iconNotSelected)
                                     .resizable()
                                     .frame(width: 41, height: 41)
                             )
@@ -42,6 +44,8 @@ struct PauseMenu: View {
                                 AudioManager.shared.toggleMute()
                             } label: {
                                 Image(.iconMusic)
+                                    .resizable()
+                                    .scaledToFit()
                                     .frame(width: 24, height: 24)
                             }
                             .background(
@@ -60,6 +64,8 @@ struct PauseMenu: View {
                                 showPauseMenu = false
                             } label: {
                                 Image(.iconRestart)
+                                    .resizable()
+                                    .scaledToFit()
                                     .frame(width: 24, height: 24)
                             }
                             .background(
@@ -75,6 +81,7 @@ struct PauseMenu: View {
                                 gameManager.goToScene(.home)
                             } label: {
                                 Image(.iconHome)
+                                    .scaledToFit()
                                     .frame(width: 24, height: 24)
                             }
                             .background(
