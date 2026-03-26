@@ -23,16 +23,14 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     private var currentScenarioSpeed: CGFloat = GameConstants.Physics.scenarioSpeed
     
-    // Nós da cena
     let worldNode = SKNode()
     let player = SKSpriteNode(imageNamed: GameConstants.Assets.playerFrame1)
     private let background = ScrollingBackground()
-    
-    // Estado
+
     var isGameOver = false
     var lastUpdateTime: TimeInterval = 0
     var currentPhase: Int = 1
-    
+
     private weak var lastHitObstacleNode: SKNode?
     var fixedPlayerX: CGFloat = 0
     private var hasPerformedInitialSetup = false
@@ -42,12 +40,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     // MARK: - Haptics
     private let hapticsManager = HapticsManager()
 
-    // HUD
     private let gameHUD = GameHUD()
-           
-    var onGameOver: ((Int) -> Void)?
 
-    // MARK: - Score entity (criada uma vez para o ECS)
+    var onGameOver: ((Int) -> Void)?
     private var scoreEntity: Entity?
 
     override func didMove(to view: SKView) {
@@ -154,7 +149,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         // 1. Sync SpriteKit → ECS
         syncPlayerPositionFromNode()
-        
         // 2. ECS Systems
         scrollSystem.update(world: ecsWorld, deltaTime: deltaTime, scenarioSpeed: currentSpeed)
         jetPackSystem.update(world: ecsWorld, deltaTime: deltaTime)
@@ -162,18 +156,14 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         scoreSystem.update(world: ecsWorld, deltaTime: deltaTime)
         spawnSystem.update(world: ecsWorld, deltaTime: deltaTime, isGameOver: isGameOver)
         cleanupSystem.update(world: ecsWorld)
-        
         // 3. Sync ECS → SpriteKit
         syncPositionToNodes()
-        
-        // 4. Visual updates
+        // 4. Visuals
         fuelBarSystem.update(world: ecsWorld, playerEntity: playerEntity)
         groundSystem.update(deltaTime: deltaTime, currentSpeed: currentSpeed)
         background.update(deltaTime: deltaTime, scenarioSpeed: currentSpeed)
-
         // 5. Haptics
         updateHapticsFromECS(deltaTime: deltaTime)
-
         // 6. Player constraints
         player.position.x = fixedPlayerX
 
@@ -247,7 +237,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         spawnSystem.reset()
         hapticsManager.resume()
 
-        // Limpa fada e projéteis via SpawnSystem (busca na scene, não no worldNode)
         spawnSystem.forceClearBoss(world: ecsWorld, scene: self)
 
         player.physicsBody?.categoryBitMask = GameConstants.PhysicsCategory.player
@@ -365,7 +354,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             currentPhase: { [weak self] in self?.currentPhase ?? 1 },
             scenarioSpeed: { [weak self] in self?.currentScenarioSpeed ?? GameConstants.Physics.scenarioSpeed }
         )
-        // bossUnlocked resetado junto com o spawnSystem (default = false)
 
         childNode(withName: "physicsGround")?.removeFromParent()
 

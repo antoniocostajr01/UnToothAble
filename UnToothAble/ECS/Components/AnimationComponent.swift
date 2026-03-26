@@ -2,13 +2,12 @@
 //  AnimationComponent.swift
 //  UnToothAble
 //
-//  Created by Richard Fagundes Rodrigues on 18/03/26.
+//  ECS: Stores the animation state of an entity.
 //
 
 import Foundation
 
 struct AnimationComponent {
-    // Guardamos a chave da animação para referência, se necessário
     let animationKey: String
     var isPaused: Bool = false
 }

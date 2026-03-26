@@ -7,7 +7,6 @@
 
 import Foundation
 
-/// Manages entities and their associated components. Systems operate on this world each frame.
 final class World {
     private var entities: Set<Entity> = []
     private var components: [Entity: [String: Any]] = [:]

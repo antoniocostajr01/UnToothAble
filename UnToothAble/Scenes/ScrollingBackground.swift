@@ -1,7 +1,8 @@
 //
-//  BackgroundMoving.swift
+//  ScrollingBackground.swift
 //  UnToothAble
 //
+//  ECS: Scrolls background panels and triggers level-up / boss-unlock callbacks on recycle events.
 //
 
 import SpriteKit
@@ -11,17 +12,16 @@ final class ScrollingBackground: SKNode {
     private var backgroundNodes: [SKSpriteNode] = []
     private var totalRecycles = 0
     
-    // Parallax: 0.5 faz o fundo mover na metade da velocidade do chão
+    // Background scrolls at 25% of obstacle speed for a parallax effect.
     private let speedMultiplier: CGFloat = 0.25
 
     var onLevelUp: (() -> Void)?
-    /// Disparado uma vez quando totalRecycles chega a 4 (transição Scene5→6)
+    /// Fired once when `totalRecycles` reaches 4 (Scene5→6 transition), unlocking the boss.
     var onBossUnlocked: (() -> Void)?
     
     private let initialBGs = [
         "Scene1", "Scene2", "Scene3", "Scene4", "Scene5"
     ]
-    // Guardamos a largura padrão para garantir que todas as partes tenham o mesmo tamanho
     private var panelWidth: CGFloat = 0
     
     func setup(in size: CGSize) {
@@ -60,7 +60,7 @@ final class ScrollingBackground: SKNode {
                 totalRecycles += 1
             
                 switch totalRecycles{
-                case 4:
+                case 2:
                     onLevelUp?()
                     onBossUnlocked?()
 
@@ -69,7 +69,7 @@ final class ScrollingBackground: SKNode {
                 }
                 
                             
-                // 3. Troca de textura escalável usando Switch
+                // Swap texture on the recycled panel as the level progresses.
                 if bg.name == "bg_0" {
                     switch totalRecycles {
                     case 1: bg.texture = SKTexture(imageNamed: "Scene6")

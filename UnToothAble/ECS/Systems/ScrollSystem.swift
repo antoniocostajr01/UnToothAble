@@ -8,10 +8,9 @@
 import Foundation
 import CoreGraphics
 
-/// Sistema que atualiza a posição X das entidades-obstáculo para simular o scroll do cenário.
+/// Move obstacle entities leftward each frame to simulate world scrolling.
 final class ScrollSystem {
 
-    /// Avança o estado: move obstáculos para a esquerda.
     func update(world: World, deltaTime: TimeInterval, scenarioSpeed: CGFloat) {
         let dx = scenarioSpeed * CGFloat(deltaTime)
         for entity in world.entities(with: [ObstacleComponent.self, PositionComponent.self]) {
