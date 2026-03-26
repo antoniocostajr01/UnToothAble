@@ -14,6 +14,7 @@ class AudioManager {
     private let musicDefaultsKey = "musicEnabled"
     
     private var targetMusicVolume: Float = 0.5
+    private var shouldResumeAfterPause = false
 
     var isMuted = false
     
@@ -69,21 +70,24 @@ class AudioManager {
     }
     
     func pauseMusic() {
+        shouldResumeAfterPause = !isMuted && (player?.isPlaying ?? false)
         player?.pause()
     }
 
     func resumeMusic() {
-        guard let player = player else { return }
+        guard shouldResumeAfterPause, !isMuted, let player = player else { return }
         
         if !player.isPlaying {
             player.play()
         }
         
         player.volume = isMuted ? 0 : targetMusicVolume
+        shouldResumeAfterPause = false
     }
 
     func stopMusic() {
         player?.stop()
         player = nil
+        shouldResumeAfterPause = false
     }
 }
