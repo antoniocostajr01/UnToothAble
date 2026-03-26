@@ -15,6 +15,8 @@ final class ScrollingBackground: SKNode {
     private let speedMultiplier: CGFloat = 0.25
 
     var onLevelUp: (() -> Void)?
+    /// Disparado uma vez quando totalRecycles chega a 4 (transição Scene5→6)
+    var onBossUnlocked: (() -> Void)?
     
     private let initialBGs = [
         "Scene1", "Scene2", "Scene3", "Scene4", "Scene5"
@@ -56,11 +58,11 @@ final class ScrollingBackground: SKNode {
             if bg.position.x <= -(panelWidth / 2) {
                 bg.position.x += panelWidth * CGFloat(backgroundNodes.count)
                 totalRecycles += 1
-                print(totalRecycles)
             
                 switch totalRecycles{
                 case 4:
                     onLevelUp?()
+                    onBossUnlocked?()
 
                 default:
                     break
