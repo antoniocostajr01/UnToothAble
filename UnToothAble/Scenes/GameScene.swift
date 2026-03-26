@@ -228,10 +228,20 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         }
     }
 
+    private func removeAllAerialObstacles() {
+        worldNode.children
+            .filter { $0.name == "aerialObstacle" }
+            .forEach {
+                $0.removeAllActions()
+                $0.removeFromParent()
+            }
+    }
+
     // MARK: - Continue / Game Over / Restart
 
     func continueRun() {
         removeAllObstaclesAheadOfPlayer()
+        removeAllAerialObstacles()
         lastHitObstacleNode = nil
 
         spawnSystem.reset()

@@ -12,8 +12,8 @@ final class SpawnSystem {
     // MARK: - Ground obstacle spawn
     private var obstacleSpawnAccumulator: TimeInterval = 0
     private var currentObstacleSpawnInterval: TimeInterval = 2.0
-    private let minObstacleGap: TimeInterval = 3.5
-    private let maxObstacleGap: TimeInterval = 6.0
+    private let minObstacleGap: TimeInterval = 1.5
+    private let maxObstacleGap: TimeInterval = 3.5
 
     // MARK: - Boss spawn
     private let bossCooldown: TimeInterval = 18.0
@@ -74,7 +74,13 @@ final class SpawnSystem {
 
         let obstacleTextures = currentObstacleTextures()
         let obstacle = SKSpriteNode(texture: obstacleTextures[0])
-        obstacle.size = CGSize(width: 100, height: 100)
+
+        if currentPhase() == 2, let texture = obstacle.texture {
+            let ratio = texture.size().height / texture.size().width
+            obstacle.size = CGSize(width: 70, height: 70 * ratio)
+        } else {
+            obstacle.size = CGSize(width: 100, height: 100)
+        }
 
         let spawnPosition = CGPoint(x: scene.size.width + 60, y: 90)
         obstacle.position = spawnPosition
@@ -115,6 +121,8 @@ final class SpawnSystem {
     }
 
     private func spawnAerialObstacle() {
+        // Só aparece a partir da sala (fase 2)
+        guard currentPhase() >= 2 else { return }
         guard let worldNode = worldNode, let scene = scene else { return }
 
         let aerialObstacle = SKSpriteNode(imageNamed: GameConstants.Assets.flyingObstacleFrame1)
@@ -126,8 +134,7 @@ final class SpawnSystem {
         let randomY = CGFloat.random(in: minY...maxY)
         let randomX = scene.size.width + CGFloat.random(in: 100...600)
 
-        let spawnPosition = CGPoint(x: randomX, y: randomY)
-        aerialObstacle.position = spawnPosition
+        aerialObstacle.position = CGPoint(x: randomX, y: randomY)
 
         let texture1 = SKTexture(imageNamed: GameConstants.Assets.flyingObstacleFrame1)
         let texture2 = SKTexture(imageNamed: GameConstants.Assets.flyingObstacleFrame2)
@@ -142,11 +149,13 @@ final class SpawnSystem {
 
         worldNode.addChild(aerialObstacle)
 
-        let world = (scene as? GameScene)?.ecsWorld
-        if let world = world {
-            let entity = ObstacleFactory.create(in: world, at: spawnPosition)
-            world.addComponent(SpriteComponent(node: aerialObstacle), to: entity)
-        }
+        let speed = scenarioSpeed()
+        let travelDistance = randomX + 100
+        let duration = Double(travelDistance / speed)
+        aerialObstacle.run(.sequence([
+            .moveBy(x: -travelDistance, y: 0, duration: duration),
+            .removeFromParent()
+        ]))
     }
 
     // MARK: - Boss Timer
@@ -201,8 +210,7 @@ final class SpawnSystem {
         let combatX: CGFloat = sceneW * 0.82
 
         // Patrulha vertical entre o chão e o teto, respeitando metade do sprite (90 pt) como margem.
-        let groundFloor: CGFloat = GameConstants.Layout.groundBaseY
-            + GameConstants.Layout.groundHeight + 90 + 15
+        let groundFloor: CGFloat = GameConstants.Layout.groundBaseY + GameConstants.Layout.groundHeight + 20
         let ceilingY: CGFloat = sceneH - 90 - 15
 
         let sweepDown = SKAction.moveTo(y: groundFloor, duration: 2.2)
@@ -257,6 +265,7 @@ final class SpawnSystem {
         projectile.size = CGSize(width: 80, height: 80)
         projectile.position = CGPoint(x: bossPosition.x - 60, y: bossPosition.y)
         projectile.zPosition = 9
+        projectile.zRotation = .pi / 6
 
         projectile.physicsBody = SKPhysicsBody(circleOfRadius: 10)
         projectile.physicsBody?.isDynamic = false
