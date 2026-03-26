@@ -58,7 +58,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         physicsWorld.gravity = CGVector(dx: 0, dy: GameConstants.Physics.gravityY)
         physicsWorld.contactDelegate = self
-        hapticsManager.prepare()
+        hapticsManager.resume()
 
         if hasPerformedInitialSetup {
             return
@@ -378,7 +378,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         setupPlayer()
         spawnSystem.startSpawningAerialObstacles()
         gameHUD.update(score: 0, bestScore: LocalScoreStore.shared.bestScore)
-        hapticsManager.prepare()
+        hapticsManager.resume()
     }
 
     func stopAllHaptics() {
