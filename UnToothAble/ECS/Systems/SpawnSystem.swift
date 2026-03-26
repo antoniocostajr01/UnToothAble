@@ -209,22 +209,26 @@ final class SpawnSystem {
         // Posição X onde a fada fica durante o ataque (canto direito da tela)
         let combatX: CGFloat = sceneW * 0.82
 
-        // Limites verticais de patrulha
-        let patrolTop: CGFloat    = sceneH * 0.80
-        let patrolBottom: CGFloat = sceneH * 0.30
+        // --- Limites absolutos da patrulha vertical ---
+        // Piso: meia altura da fada + chão + margem
+        let groundFloor: CGFloat = GameConstants.Layout.groundBaseY
+            + GameConstants.Layout.groundHeight
+            + 90   // metade do sprite da fada (size = 180)
+            + 15   // margem de folga
+        // Teto: topo da tela menos meia altura da fada
+        let ceilingY: CGFloat = sceneH - 90 - 15
 
-        // --- Movimento vertical em loop (moveBy para não conflitar com moveTo(x:)) ---
-        // A fada f começa em entryY (75% da tela). Patrulha entre +amplitude e -amplitude.
-        let amplitude: CGFloat = sceneH * 0.22
-        let moveToCombat = SKAction.moveTo(x: combatX, duration: 0.9)
-        moveToCombat.timingMode = .easeOut
-        
-        // Movimento vertical usando group no ciclo principal para sincronizar tudo
-        let patrolDown = SKAction.moveBy(x: 0, y: -amplitude, duration: 1.6)
-        patrolDown.timingMode = .easeInEaseOut
-        let patrolUp = SKAction.moveBy(x: 0, y: amplitude, duration: 1.6)
-        patrolUp.timingMode = .easeInEaseOut
-        boss.run(.repeatForever(.sequence([patrolDown, patrolUp])), withKey: "bossVertical")
+        // A fada entra em 65% da tela, desce primeiro até o piso, depois oscila até o tecto.
+        // moveTo(y:) é seguro em paralelo com moveTo(x:) porque cada um só afeta um eixo.
+        let sweepDown = SKAction.moveTo(y: groundFloor, duration: 2.2)
+        sweepDown.timingMode = .easeInEaseOut
+        let sweepUp = SKAction.moveTo(y: ceilingY, duration: 2.2)
+        sweepUp.timingMode = .easeInEaseOut
+        boss.run(.repeatForever(.sequence([sweepDown, sweepUp])), withKey: "bossVertical")
+
+        // Entrada: desliza até a posição de combate no canto direito
+        let moveToCombat = SKAction.moveTo(x: combatX, duration: 1.2)
+        (moveToCombat as SKAction).timingMode = .easeOut
 
         // --- Fase de ataque: disparos com quantidade e velocidade variável ---
         let shotCount = Int.random(in: 3...7)
@@ -348,3 +352,4 @@ final class SpawnSystem {
         }
     }
 }
+
