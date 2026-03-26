@@ -59,11 +59,12 @@ final class ScrollingBackground: SKNode {
                 bg.position.x += panelWidth * CGFloat(backgroundNodes.count)
                 totalRecycles += 1
             
-                switch totalRecycles{
+                switch totalRecycles {
                 case 2:
                     onLevelUp?()
                     onBossUnlocked?()
-
+                case 5, 7:
+                    onLevelUp?()
                 default:
                     break
                 }
