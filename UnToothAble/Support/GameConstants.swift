@@ -55,5 +55,8 @@ enum GameConstants {
         static let phase4ObstacleFrame2 = "Roach2"
 
         static let fairyAttack = "FairyAttack"
+
+        static let flyingObstacleFrame1 = "fly1"
+        static let flyingObstacleFrame2 = "fly2"
     }
 }
