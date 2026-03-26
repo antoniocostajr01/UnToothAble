@@ -6,12 +6,13 @@
 //
 
 import SwiftUI
+import UIKit
 
 struct PauseMenu: View {
     @Environment(GameManager.self) var gameManager
     @Binding var showPauseMenu: Bool
 
-    @AppStorage("isSoundOn") private var isSoundOn: Bool = true
+    @AppStorage("hapticsEnabled") private var isHapticOn: Bool = true
     @AppStorage("musicEnabled") private var isMusicOn: Bool = true
 
     var body: some View {
@@ -27,6 +28,11 @@ struct PauseMenu: View {
                         HStack(spacing: 40) {
                             Button {
                                 isHapticOn.toggle()
+                                if isHapticOn {
+                                    let generator = UIImpactFeedbackGenerator(style: .medium)
+                                    generator.prepare()
+                                    generator.impactOccurred()
+                                }
                             } label: {
                                 Image(.iconHaptics)
                                     .resizable()

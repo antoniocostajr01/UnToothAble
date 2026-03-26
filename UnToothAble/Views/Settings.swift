@@ -9,7 +9,7 @@ struct Settings: View {
 
     @State private var showHistoryAlways = false
     @AppStorage("musicEnabled") private var musicEnabled = true
-    @State private var hapticsEnabled = UserDefaults.standard.object(forKey: "hapticsEnabled") as? Bool ?? true
+    @AppStorage("hapticsEnabled") private var hapticsEnabled = true
 
     var body: some View {
         ZStack(alignment: .top) {
@@ -44,9 +44,7 @@ struct Settings: View {
                         title: " HAPTICS ",
                         isOn: $hapticsEnabled,
                         isHapticsOption: true
-                    ) { isOn in
-                        UserDefaults.standard.set(isOn, forKey: "hapticsEnabled")
-                    }
+                    )
 
 
                     HStack(spacing: 14) {
@@ -107,7 +105,7 @@ struct SettingsRow: View {
     var body: some View {
         Button {
             isOn.toggle()
-            onToggle?(isOn) 
+            onToggle?(isOn)
 
             if isHapticsOption && isOn {
                         let generator = UIImpactFeedbackGenerator(style: .medium)
