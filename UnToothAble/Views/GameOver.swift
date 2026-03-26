@@ -128,11 +128,11 @@ struct GameOver: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .ignoresSafeArea()
         .onAppear {
-            AudioManager.shared.toggleMute()
+            AudioManager.shared.pauseMusic()
             gameManager.refreshRewardedAvailability()
         }
         .onDisappear {
-            AudioManager.shared.toggleMute()
+            AudioManager.shared.resumeMusic()
         }
     }
 
@@ -201,4 +201,3 @@ struct GameOver: View {
         return base
     }
 }
-

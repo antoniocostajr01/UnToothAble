@@ -11,8 +11,8 @@ struct PauseMenu: View {
     @Environment(GameManager.self) var gameManager
     @Binding var showPauseMenu: Bool
 
-    @AppStorage("isHapticOn") private var isHapticOn: Bool = true
-    @AppStorage("isMusicOn") private var isMusicOn: Bool = true
+    @AppStorage("isSoundOn") private var isSoundOn: Bool = true
+    @AppStorage("musicEnabled") private var isMusicOn: Bool = true
 
     var body: some View {
         ZStack {
@@ -41,7 +41,7 @@ struct PauseMenu: View {
 
                             Button {
                                 isMusicOn.toggle()
-                                AudioManager.shared.toggleMute()
+                                AudioManager.shared.setMusicEnabled(isMusicOn)
                             } label: {
                                 Image(.iconMusic)
                                     .resizable()

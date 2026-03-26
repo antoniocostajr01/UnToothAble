@@ -62,34 +62,41 @@ struct Game: View {
         .onChange(of: scenePhase) { _, newPhase in
             switch newPhase {
             case .inactive, .background:
-                gameManager.gameScene.pauseGame()
-                showPauseMenu = true
+                handleAppBecameInactive()
 
             case .active:
-                if showPauseMenu {
-                    gameManager.gameScene.pauseGame()
-                }
+                handleAppBecameActive()
 
             @unknown default:
                 break
             }
         }
         .onReceive(NotificationCenter.default.publisher(for: UIApplication.willResignActiveNotification)) { _ in
-            gameManager.gameScene.pauseGame()
-            showPauseMenu = true
+            handleAppBecameInactive()
         }
         .onReceive(NotificationCenter.default.publisher(for: UIApplication.didEnterBackgroundNotification)) { _ in
-            gameManager.gameScene.pauseGame()
-            showPauseMenu = true
+            handleAppBecameInactive()
         }
         .onReceive(NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)) { _ in
-            if showPauseMenu {
-                gameManager.gameScene.pauseGame()
-            }
+            handleAppBecameActive()
         }
         .onDisappear {
             gameManager.gameScene.pauseGame()
             showPauseMenu = true
+        }
+    }
+
+    private func handleAppBecameInactive() {
+        guard !gameManager.isShowingRewardedAd else { return }
+        gameManager.gameScene.pauseGame()
+        showPauseMenu = true
+    }
+
+    private func handleAppBecameActive() {
+        guard !gameManager.isShowingRewardedAd else { return }
+
+        if showPauseMenu {
+            gameManager.gameScene.pauseGame()
         }
     }
 }
