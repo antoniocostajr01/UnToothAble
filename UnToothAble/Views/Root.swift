@@ -25,6 +25,9 @@ struct Root: View {
             case .loading:
                 Loading()
                 
+            case .history:
+                History()
+                
             }
 
             if gameManager.currentScene == .gameOver {
