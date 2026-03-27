@@ -8,7 +8,6 @@
 import Foundation
 import CoreGraphics
 
-/// Factory that builds obstacle entities with PositionComponent and ObstacleComponent. A cena adiciona SpriteComponent ao spawar o nó.
 enum ObstacleFactory {
 
     static func create(in world: World, at position: CGPoint) -> Entity {

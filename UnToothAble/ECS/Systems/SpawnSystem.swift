@@ -9,23 +9,26 @@ import SpriteKit
 
 final class SpawnSystem {
 
+    // MARK: - Aerial Obstacles
+    private var aerialSpawnAccumulator: TimeInterval = 0
+    private var currentAerialSpawnInterval: TimeInterval = 1.0
+    private var minAerialObstacleGap = 2.0
+    private var maxAerialObstacleGap = 4.0
+
     // MARK: - Ground obstacle spawn
     private var obstacleSpawnAccumulator: TimeInterval = 0
     private var currentObstacleSpawnInterval: TimeInterval = 2.0
-    private let minObstacleGap: TimeInterval = 3.5
-    private let maxObstacleGap: TimeInterval = 6.0
+    private let minObstacleGap: TimeInterval = 1.5
+    private let maxObstacleGap: TimeInterval = 3.5
 
     // MARK: - Boss spawn
-    /// Cooldown após a fada sair antes de spawnar outra (em segundos)
     private let bossCooldown: TimeInterval = 18.0
     private var bossTimer: TimeInterval = 0
-    /// Só começa a contar quando a cena chegar no nível certo
     private var bossEnabled: Bool = false
-    /// Impede sobreposição: só spawna uma fada de cada vez
+    /// `true` enquanto a fada estiver em cena; impede sobreposição de spawns.
     private var isBossActive: Bool = false
 
-    // MARK: - Scene readiness (boss começa após Scene5→6 transição)
-    /// Fornecido pela ScrollingBackground via callback
+    /// Liberado pela `ScrollingBackground` ao atingir a transição Scene5→6.
     var bossUnlocked: Bool = false
 
     // MARK: - References
@@ -44,20 +47,23 @@ final class SpawnSystem {
         self.scenarioSpeed = scenarioSpeed
     }
 
+    /// Reseta timers e flags de spawn. `bossUnlocked` é preservado — apenas `restartGame()`,
+    /// que recria o `SpawnSystem`, volta esse flag para `false`.
     func reset() {
         obstacleSpawnAccumulator = 0
         currentObstacleSpawnInterval = 2.0
         bossTimer = 0
         isBossActive = false
-        // Nota: bossUnlocked NÃO é resetado aqui.
-        // continueRun() preserva o estado do nível atual.
-        // Só restartGame() recria o SpawnSystem do zero.
+
+        aerialSpawnAccumulator = 0
+        currentAerialSpawnInterval = TimeInterval.random(in: 3.0...8.0)
     }
 
     func update(world: World, deltaTime: TimeInterval, isGameOver: Bool) {
         guard !isGameOver else { return }
 
         updateObstacleSpawn(world: world, deltaTime: deltaTime)
+        updateAerialObstacleSpawn(deltaTime: deltaTime)
         updateBossTimer(world: world, deltaTime: deltaTime, isGameOver: isGameOver)
     }
 
@@ -78,7 +84,13 @@ final class SpawnSystem {
 
         let obstacleTextures = currentObstacleTextures()
         let obstacle = SKSpriteNode(texture: obstacleTextures[0])
-        obstacle.size = CGSize(width: 100, height: 100)
+
+        if currentPhase() == 2, let texture = obstacle.texture {
+            let ratio = texture.size().height / texture.size().width
+            obstacle.size = CGSize(width: 70, height: 70 * ratio)
+        } else {
+            obstacle.size = CGSize(width: 100, height: 100)
+        }
 
         let spawnPosition = CGPoint(x: scene.size.width + 60, y: 90)
         obstacle.position = spawnPosition
@@ -99,26 +111,21 @@ final class SpawnSystem {
     }
 
     // MARK: - Aerial Obstacles
+    private func updateAerialObstacleSpawn(deltaTime: TimeInterval) {
+        // Só processa o tempo de spawn se a fase permitir
+        guard currentPhase() >= 2 else { return }
 
-    func startSpawningAerialObstacles() {
-        spawnAerialObstacleLoop()
-    }
-
-    private func spawnAerialObstacleLoop() {
-        guard let scene = scene else { return }
-
-        let randomWait = TimeInterval.random(in: 3.0...8.0)
-        let wait = SKAction.wait(forDuration: randomWait)
-        let spawn = SKAction.run { [weak self] in
-            guard let self = self else { return }
-            self.spawnAerialObstacle()
-            self.spawnAerialObstacleLoop()
+        aerialSpawnAccumulator += deltaTime
+        if aerialSpawnAccumulator >= currentAerialSpawnInterval {
+            aerialSpawnAccumulator = 0
+            currentAerialSpawnInterval = TimeInterval.random(in: minAerialObstacleGap...maxAerialObstacleGap)
+            spawnAerialObstacle()
         }
-
-        scene.run(.sequence([wait, spawn]), withKey: "spawnAerialObstacles")
     }
 
     private func spawnAerialObstacle() {
+        // Só aparece a partir da sala (fase 2)
+//        guard currentPhase() >= 2 else { return }
         guard let worldNode = worldNode, let scene = scene else { return }
 
         let aerialObstacle = SKSpriteNode(imageNamed: GameConstants.Assets.flyingObstacleFrame1)
@@ -130,8 +137,7 @@ final class SpawnSystem {
         let randomY = CGFloat.random(in: minY...maxY)
         let randomX = scene.size.width + CGFloat.random(in: 100...600)
 
-        let spawnPosition = CGPoint(x: randomX, y: randomY)
-        aerialObstacle.position = spawnPosition
+        aerialObstacle.position = CGPoint(x: randomX, y: randomY)
 
         let texture1 = SKTexture(imageNamed: GameConstants.Assets.flyingObstacleFrame1)
         let texture2 = SKTexture(imageNamed: GameConstants.Assets.flyingObstacleFrame2)
@@ -146,20 +152,19 @@ final class SpawnSystem {
 
         worldNode.addChild(aerialObstacle)
 
-        let world = (scene as? GameScene)?.ecsWorld
-        if let world = world {
-            let entity = ObstacleFactory.create(in: world, at: spawnPosition)
-            world.addComponent(SpriteComponent(node: aerialObstacle), to: entity)
-        }
+        let speed = scenarioSpeed()
+        let travelDistance = randomX + 100
+        let duration = Double(travelDistance / speed)
+        aerialObstacle.run(.sequence([
+            .moveBy(x: -travelDistance, y: 0, duration: duration),
+            .removeFromParent()
+        ]))
     }
 
     // MARK: - Boss Timer
 
     private func updateBossTimer(world: World, deltaTime: TimeInterval, isGameOver: Bool) {
-        // Boss só está disponível após o nível de rua (Scene 5→6)
-        guard bossUnlocked else { return }
-        // Não spawna se já há uma fada ativa
-        guard !isBossActive else { return }
+        guard bossUnlocked, !isBossActive else { return }
 
         bossTimer += deltaTime
         if bossTimer >= bossCooldown {
@@ -170,13 +175,13 @@ final class SpawnSystem {
 
     // MARK: - Boss Spawn & Behavior
 
+    /// Spawna a fada diretamente na cena (não no `worldNode`) para que
+    /// suas coordenadas sejam independentes do scroll dos obstáculos.
     func spawnBoss(world: World, isGameOver: Bool) {
         guard !isGameOver, !isBossActive, let scene = scene else { return }
 
         isBossActive = true
 
-        // A fada é filha direta da CENA (não do worldNode) para garantir
-        // coordenadas simples e independentes do scroll dos obstáculos.
         let startX = scene.size.width + 120
         let entryY = scene.size.height * 0.75
 
@@ -191,7 +196,6 @@ final class SpawnSystem {
         let flapAnimation = SKAction.animate(with: [texture1, texture2], timePerFrame: 0.2)
         boss.run(.repeatForever(flapAnimation), withKey: "bossFlap")
 
-        // Fada é filha da CENA para ter coordenadas fixas (não afetada pelo scroll)
         scene.addChild(boss)
 
         let entity = BossFactory.create(in: world)
@@ -206,31 +210,21 @@ final class SpawnSystem {
         let sceneH = scene.size.height
         let sceneW = scene.size.width
 
-        // Posição X onde a fada fica durante o ataque (canto direito da tela)
         let combatX: CGFloat = sceneW * 0.82
 
-        // --- Limites absolutos da patrulha vertical ---
-        // Piso: meia altura da fada + chão + margem
-        let groundFloor: CGFloat = GameConstants.Layout.groundBaseY
-            + GameConstants.Layout.groundHeight
-            + 90   // metade do sprite da fada (size = 180)
-            + 15   // margem de folga
-        // Teto: topo da tela menos meia altura da fada
+        // Patrulha vertical entre o chão e o teto, respeitando metade do sprite (90 pt) como margem.
+        let groundFloor: CGFloat = GameConstants.Layout.groundBaseY + GameConstants.Layout.groundHeight + 20
         let ceilingY: CGFloat = sceneH - 90 - 15
 
-        // A fada entra em 65% da tela, desce primeiro até o piso, depois oscila até o tecto.
-        // moveTo(y:) é seguro em paralelo com moveTo(x:) porque cada um só afeta um eixo.
         let sweepDown = SKAction.moveTo(y: groundFloor, duration: 2.2)
         sweepDown.timingMode = .easeInEaseOut
         let sweepUp = SKAction.moveTo(y: ceilingY, duration: 2.2)
         sweepUp.timingMode = .easeInEaseOut
         boss.run(.repeatForever(.sequence([sweepDown, sweepUp])), withKey: "bossVertical")
 
-        // Entrada: desliza até a posição de combate no canto direito
         let moveToCombat = SKAction.moveTo(x: combatX, duration: 1.2)
         (moveToCombat as SKAction).timingMode = .easeOut
 
-        // --- Fase de ataque: disparos com quantidade e velocidade variável ---
         let shotCount = Int.random(in: 3...7)
         var shotActions: [SKAction] = []
 
@@ -243,15 +237,12 @@ final class SpawnSystem {
             shotActions.append(contentsOf: [waitBetween, shoot])
         }
 
-        // Pequeno delay extra após o último tiro antes de sair
         shotActions.append(SKAction.wait(forDuration: 0.8))
         let attackPhase = SKAction.sequence(shotActions)
 
-        // --- Saída: desliza para fora da tela ---
         let moveOut = SKAction.moveTo(x: sceneW + 150, duration: 0.9)
         moveOut.timingMode = .easeIn
 
-        // --- Limpeza: remove node, entidade e reset do flag ---
         let cleanup = SKAction.run { [weak self, weak boss] in
             guard let self = self, let boss = boss else { return }
             if let world = (scene as? GameScene)?.ecsWorld {
@@ -268,17 +259,16 @@ final class SpawnSystem {
 
     // MARK: - Projectile
 
+    /// Projéteis são filhos da cena (não do `worldNode`) para coordenadas consistentes com a fada.
     private func spawnBossProjectile(from bossPosition: CGPoint, in scene: SKScene) {
-        // Projéteis também são filhos da CENA para coordenadas consistentes
-        let speed = CGFloat.random(in: 350...600) // velocidade variável px/s
-        let travelDistance = bossPosition.x + 80   // distância até sair pela esquerda
+        let speed = CGFloat.random(in: 350...600)
+        let travelDistance = bossPosition.x + 80
 
         let projectile = SKSpriteNode(imageNamed: GameConstants.Assets.fairyAttack)
         projectile.size = CGSize(width: 80, height: 80)
-
-        // Posição de lançamento: ligeiramente à esquerda da fada, na altura atual dela
         projectile.position = CGPoint(x: bossPosition.x - 60, y: bossPosition.y)
         projectile.zPosition = 9
+        projectile.zRotation = .pi / 6
 
         projectile.physicsBody = SKPhysicsBody(circleOfRadius: 10)
         projectile.physicsBody?.isDynamic = false
@@ -288,7 +278,6 @@ final class SpawnSystem {
 
         scene.addChild(projectile)
 
-        // Duração baseada na velocidade para parecer consistente com o scroll
         let duration = Double(travelDistance / speed)
         let moveLeft = SKAction.moveBy(x: -travelDistance, y: 0, duration: duration)
         let remove   = SKAction.removeFromParent()
@@ -309,14 +298,13 @@ final class SpawnSystem {
         }
     }
 
+    /// Remove a fada e todos os seus projéteis da cena. Chamado em game over e `continueRun`.
     func forceClearBoss(world: World, scene: SKScene) {
-        // Limpa a fada quando o jogador morre ou usa continueRun
         if let bossNode = scene.childNode(withName: "boss") {
             removeBossEntity(for: bossNode, world: world)
             bossNode.removeAllActions()
             bossNode.removeFromParent()
         }
-        // Remove projéteis da fada (filhos da cena com categoria projectile)
         scene.children
             .filter { $0.physicsBody?.categoryBitMask == GameConstants.PhysicsCategory.projectile }
             .forEach { $0.removeFromParent() }

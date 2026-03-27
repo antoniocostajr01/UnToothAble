@@ -6,12 +6,13 @@
 //
 
 import SwiftUI
+import UIKit
 
 struct PauseMenu: View {
     @Environment(GameManager.self) var gameManager
     @Binding var showPauseMenu: Bool
 
-    @AppStorage("isSoundOn") private var isSoundOn: Bool = true
+    @AppStorage("hapticsEnabled") private var isHapticOn: Bool = true
     @AppStorage("musicEnabled") private var isMusicOn: Bool = true
 
     var body: some View {
@@ -26,13 +27,20 @@ struct PauseMenu: View {
                     VStack(spacing: 32) {
                         HStack(spacing: 40) {
                             Button {
-                                isSoundOn.toggle()
+                                isHapticOn.toggle()
+                                if isHapticOn {
+                                    let generator = UIImpactFeedbackGenerator(style: .medium)
+                                    generator.prepare()
+                                    generator.impactOccurred()
+                                }
                             } label: {
-                                Image(.iconSound)
+                                Image(.iconHaptics)
+                                    .resizable()
+                                    .scaledToFit()
                                     .frame(width: 24, height: 24)
                             }
                             .background(
-                                Image(isSoundOn ? .iconSelected : .iconNotSelected)
+                                Image(isHapticOn ? .iconSelected : .iconNotSelected)
                                     .resizable()
                                     .frame(width: 41, height: 41)
                             )
@@ -40,8 +48,13 @@ struct PauseMenu: View {
                             Button {
                                 isMusicOn.toggle()
                                 AudioManager.shared.setMusicEnabled(isMusicOn)
+                                if isMusicOn {
+                                    AudioManager.shared.playMusic(named: "backgroundSong.mp3")
+                                }
                             } label: {
                                 Image(.iconMusic)
+                                    .resizable()
+                                    .scaledToFit()
                                     .frame(width: 24, height: 24)
                             }
                             .background(
@@ -60,6 +73,8 @@ struct PauseMenu: View {
                                 showPauseMenu = false
                             } label: {
                                 Image(.iconRestart)
+                                    .resizable()
+                                    .scaledToFit()
                                     .frame(width: 24, height: 24)
                             }
                             .background(
@@ -70,11 +85,12 @@ struct PauseMenu: View {
 
                             Button {
                                 gameManager.resetReviveForNewRun()
-                                gameManager.gameScene.restartGame()
                                 showPauseMenu = false
                                 gameManager.goToScene(.home)
+                                gameManager.gameScene.restartGame()
                             } label: {
                                 Image(.iconHome)
+                                    .scaledToFit()
                                     .frame(width: 24, height: 24)
                             }
                             .background(

@@ -2,7 +2,7 @@
 //  BossComponent.swift
 //  UnToothAble
 //
-//  ECS: Tag + state for boss entities.
+//  ECS: Tag component — marks an entity as the boss (fairy).
 //
 
 import Foundation

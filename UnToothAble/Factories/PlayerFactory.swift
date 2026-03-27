@@ -9,7 +9,6 @@ import Foundation
 import SpriteKit
 import CoreGraphics
 
-/// Factory that builds the player entity with position, velocity, and optional sprite node reference.
 enum PlayerFactory {
 
     static func create(in world: World) -> Entity {

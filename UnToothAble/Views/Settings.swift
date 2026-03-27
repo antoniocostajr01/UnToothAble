@@ -112,6 +112,22 @@ struct Settings: View {
 }
 
 
+    var body: some View {
+        Button {
+            isOn.toggle()
+            onToggle?(isOn)
+
+            if isHapticsOption && isOn {
+                        let generator = UIImpactFeedbackGenerator(style: .medium)
+                        generator.prepare()
+                        generator.impactOccurred()
+                    }
+        } label: {
+            HStack {
+                Text(title)
+                    .font(.bangers(22))
+                    .foregroundStyle(.white)
+                    .customStroke(color: .stroke, width: 1)
 
 #Preview {
     Settings(isPresented: .constant(true))

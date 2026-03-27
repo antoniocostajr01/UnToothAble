@@ -15,45 +15,39 @@ struct Home: View {
     
     var body: some View {
         ZStack {
-            
             HStack {
-                
                 VStack {
                     Image(.logo)
                         .resizable()
                         .scaledToFit()
                         .frame(width: 300, height: 200)
-                    
-                        CustomButton(label: " PLAY ", state: .normal, icon: .play) {
-                            
-                            if gameManager.shouldAlwaysShowHistory {
-                                gameManager.shouldGoToGameAfterHistory = true
-                                gameManager.goToScene(.history)
-                            } else {
-                                gameManager.goToScene(.loading)
-                            }
-                            
+
+                    CustomButton(label: " PLAY ", state: .normal, icon: .play) {
+
+                        if gameManager.shouldAlwaysShowHistory {
+                            gameManager.shouldGoToGameAfterHistory = true
+                            gameManager.goToScene(.history)
+                        } else {
+                            gameManager.goToScene(.loading)
                         }
-                        .padding(.top, 56)
-                    
+
+                    }
+                    .padding(.top, 56)
+
                     Spacer()
-                    
-                    
                 }
                 .padding(.leading, 32)
-                
+
                 VStack {
-                    
                     HStack {
-                        
+
                         Spacer()
-                        
                         CustomIcon(state: .normal, icon: .settings) {
                             withAnimation(.spring(response: 0.3, dampingFraction: 0.75)) {
                                 showSettings = true
                             }
                         }
-                        
+
                         CustomIcon(state: .normal, icon: .person) {
                             GameCenterManager.shared.showLeaderboard()
                         }
@@ -63,29 +57,32 @@ struct Home: View {
                     }
                     .padding(.trailing, 32)
                     .padding(.top, 32)
-                    
+
                     Spacer()
                 }
-                
                 Spacer()
             }
-            
-            
-            if showSettings {
-                Color.black.opacity(0.45)
-                    .ignoresSafeArea()
-                    .onTapGesture {
-                        withAnimation(.spring(response: 0.3, dampingFraction: 0.75)) {
-                            showSettings = false
+
+            ZStack {
+                if showSettings {
+                    Color.black.opacity(0.45)
+                        .ignoresSafeArea()
+                        .onTapGesture {
+                            withAnimation(.spring(response: 0.3, dampingFraction: 0.75)) {
+                                showSettings = false
+                            }
                         }
-                    }
-                    .transition(.opacity)
-                
-                Settings(isPresented: $showSettings)
-                    .frame(width: 417, height: 265)
-                    .transition(.scale(scale: 0.85).combined(with: .opacity))
-                    .zIndex(1)
+
+                        .transition(.opacity)
+
+                    Settings(isPresented: $showSettings)
+                        .frame(width: 417, height: 265)
+                        .scaleEffect(showSettings ? 1 : 0.85)
+                }
             }
+            .opacity(showSettings ? 1 : 0)
+            .allowsHitTesting(showSettings)
+            .zIndex(1)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(

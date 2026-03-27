@@ -104,8 +104,8 @@ struct GameOver: View {
                                 width: 125
                             ) {
                                 gameManager.resetReviveForNewRun()
-                                gameManager.gameScene.restartGame()
                                 gameManager.goToScene(.home)
+                                gameManager.gameScene.restartGame()
                             }
                         }
                     }

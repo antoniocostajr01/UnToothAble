@@ -55,20 +55,16 @@ extension GameScene {
 
         addChild(player)
 
-        // Setup fuel bar system
         fuelBarSystem = FuelBarSystem(playerNode: player, worldNode: worldNode)
         fuelBarSystem.setupFuelBar()
 
-        // Setup ground system
         groundSystem.setup(in: size, worldNode: worldNode)
 
-        // Create player entity via factory
         let entity = PlayerFactory.create(in: ecsWorld)
         ecsWorld.addComponent(PositionComponent(x: player.position.x, y: player.position.y), to: entity)
         ecsWorld.addComponent(SpriteComponent(node: player), to: entity)
         playerEntity = entity
 
-        // Create score entity
         let sEntity = ecsWorld.createEntity()
         ecsWorld.addComponent(ScoreComponent(), to: sEntity)
     }

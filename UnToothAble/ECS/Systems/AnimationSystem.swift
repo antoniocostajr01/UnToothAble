@@ -1,3 +1,10 @@
+//
+//  AnimationSystem.swift
+//  UnToothAble
+//
+//  ECS: Pauses/resumes the player sprite's run animation based on ground contact.
+//
+
 import SpriteKit
 
 class AnimationSystem {

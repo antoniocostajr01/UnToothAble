@@ -8,5 +8,5 @@
 import Foundation
 
 enum IconName {
-    case tooth, play, person, settings, sound, music, restart, home, none
+    case tooth, play, person, settings, hapticIco, music, restart, home, none
 }
