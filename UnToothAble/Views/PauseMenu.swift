@@ -48,6 +48,9 @@ struct PauseMenu: View {
                             Button {
                                 isMusicOn.toggle()
                                 AudioManager.shared.setMusicEnabled(isMusicOn)
+                                if isMusicOn {
+                                    AudioManager.shared.playMusic(named: "backgroundSong.mp3")
+                                }
                             } label: {
                                 Image(.iconMusic)
                                     .resizable()
