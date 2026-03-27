@@ -8,7 +8,7 @@ struct Settings: View {
     @State private var showCredits = false
 
     @State private var showHistoryAlways = UserDefaults.standard.bool(forKey: "showHistoryAlways")
-    @State private var musicEnabled = UserDefaults.standard.bool(forKey: "musicEnabled")
+    @AppStorage("musicEnabled") private var musicEnabled = true
     @State private var hapticsEnabled = UserDefaults.standard.object(forKey: "hapticsEnabled") as? Bool ?? true
 
     var body: some View {
@@ -35,12 +35,10 @@ struct Settings: View {
                         title: " MUSIC ",
                         isOn: $musicEnabled
                     ) { isOn in
-                        UserDefaults.standard.set(isOn, forKey: "musicEnabled") 
+                        AudioManager.shared.setMusicEnabled(isOn)
 
                         if isOn {
                             AudioManager.shared.playMusic(named: "backgroundSong.mp3")
-                        } else {
-                            AudioManager.shared.toggleMute()
                         }
                     }
 

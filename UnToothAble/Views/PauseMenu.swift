@@ -12,7 +12,7 @@ struct PauseMenu: View {
     @Binding var showPauseMenu: Bool
 
     @AppStorage("isSoundOn") private var isSoundOn: Bool = true
-    @AppStorage("isMusicOn") private var isMusicOn: Bool = true
+    @AppStorage("musicEnabled") private var isMusicOn: Bool = true
 
     var body: some View {
         ZStack {
@@ -39,7 +39,7 @@ struct PauseMenu: View {
 
                             Button {
                                 isMusicOn.toggle()
-                                AudioManager.shared.toggleMute()
+                                AudioManager.shared.setMusicEnabled(isMusicOn)
                             } label: {
                                 Image(.iconMusic)
                                     .frame(width: 24, height: 24)

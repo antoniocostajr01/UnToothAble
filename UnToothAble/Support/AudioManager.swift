@@ -10,12 +10,23 @@ import AVFoundation
 
 class AudioManager {
     static let shared = AudioManager()
+
+    private let musicDefaultsKey = "musicEnabled"
     
     private var targetMusicVolume: Float = 0.5
+    private var shouldResumeAfterPause = false
 
     var isMuted = false
     
     var player: AVAudioPlayer?      // Música de fundo (Loops longos)
+
+    private init() {
+        if UserDefaults.standard.object(forKey: musicDefaultsKey) == nil {
+            UserDefaults.standard.set(true, forKey: musicDefaultsKey)
+        }
+
+        isMuted = !UserDefaults.standard.bool(forKey: musicDefaultsKey)
+    }
     
     func playMusic(named fileName: String, volume: Float = 0.5) {
             targetMusicVolume = volume
@@ -40,28 +51,43 @@ class AudioManager {
             }
             
         }
+
+    func setMusicEnabled(_ isEnabled: Bool) {
+        UserDefaults.standard.set(isEnabled, forKey: musicDefaultsKey)
+        isMuted = !isEnabled
+
+        if let player = player {
+            player.volume = isEnabled ? targetMusicVolume : 0
+
+            if isEnabled && !player.isPlaying {
+                player.play()
+            }
+        }
+    }
     
     func toggleMute() {
-        isMuted.toggle()
-        player?.volume = isMuted ? 0 : targetMusicVolume
+        setMusicEnabled(isMuted)
     }
     
     func pauseMusic() {
+        shouldResumeAfterPause = !isMuted && (player?.isPlaying ?? false)
         player?.pause()
     }
 
     func resumeMusic() {
-        guard let player = player else { return }
+        guard shouldResumeAfterPause, !isMuted, let player = player else { return }
         
         if !player.isPlaying {
             player.play()
         }
         
         player.volume = isMuted ? 0 : targetMusicVolume
+        shouldResumeAfterPause = false
     }
 
     func stopMusic() {
         player?.stop()
         player = nil
+        shouldResumeAfterPause = false
     }
 }
