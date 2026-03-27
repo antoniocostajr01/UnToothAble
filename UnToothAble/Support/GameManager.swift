@@ -14,8 +14,15 @@ import Observation
 @MainActor
 class GameManager {
 
-    var currentScene: GameDelegator = .home
-        
+    var currentScene: GameDelegator
+
+    init() {
+        if UserDefaults.standard.bool(forKey: "hasSeenHistory") {
+            currentScene = .home
+        } else {
+            currentScene = .history
+        }
+    }
     var gameSpeed: CGFloat = 250
     
     var lastScore: Int = 0
