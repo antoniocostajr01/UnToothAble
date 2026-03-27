@@ -80,10 +80,7 @@ struct Game: View {
         .onReceive(NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)) { _ in
             handleAppBecameActive()
         }
-        .onDisappear {
-            gameManager.gameScene.pauseGame()
-            showPauseMenu = true
-        }
+
     }
 
     private func handleAppBecameInactive() {

@@ -41,13 +41,6 @@ struct Root: View {
             }
         }
         .environment(gameManager)
-        .onAppear {
-            if gameManager.hasSawHistory {
-                gameManager.currentScene = .home
-            } else {
-                gameManager.currentScene = .history
-            }
-        }
     }
 }
 

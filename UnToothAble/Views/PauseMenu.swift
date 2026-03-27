@@ -48,6 +48,9 @@ struct PauseMenu: View {
                             Button {
                                 isMusicOn.toggle()
                                 AudioManager.shared.setMusicEnabled(isMusicOn)
+                                if isMusicOn {
+                                    AudioManager.shared.playMusic(named: "backgroundSong.mp3")
+                                }
                             } label: {
                                 Image(.iconMusic)
                                     .resizable()
@@ -82,9 +85,9 @@ struct PauseMenu: View {
 
                             Button {
                                 gameManager.resetReviveForNewRun()
-                                gameManager.gameScene.restartGame()
                                 showPauseMenu = false
                                 gameManager.goToScene(.home)
+                                gameManager.gameScene.restartGame()
                             } label: {
                                 Image(.iconHome)
                                     .scaledToFit()
