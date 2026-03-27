@@ -28,6 +28,17 @@ class GameManager {
             UserDefaults.standard.set(newValue, forKey: "hasSeenHistory")
         }
     }
+    
+    var shouldAlwaysShowHistory: Bool {
+        get {
+            UserDefaults.standard.bool(forKey: "showHistoryAlways")
+        }
+        set {
+            UserDefaults.standard.set(newValue, forKey: "showHistoryAlways")
+        }
+    }
+    
+    var shouldGoToGameAfterHistory = false
 
     var restartRun: () -> Void = {}
     var continueRun: () -> Void = {}

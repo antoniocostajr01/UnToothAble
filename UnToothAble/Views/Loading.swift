@@ -36,10 +36,7 @@ struct Loading: View {
                 
                 
                 LoadingView()
-                
-//                ProgressView()
-//                    .scaleEffect(2.5)
-//                    .padding(.top, 24)
+
             }
         }
         .onAppear {

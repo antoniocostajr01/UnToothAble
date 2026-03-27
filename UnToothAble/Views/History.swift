@@ -16,6 +16,7 @@ struct History: View {
         return dialogues[currentDialogueIndex]
     }
     
+    
     var body: some View {
         VStack{
             Spacer()
@@ -48,7 +49,7 @@ struct History: View {
                 }
                 
                 
-                CustomButton(label: "NEXT", state: .normal) {
+                CustomButton(label: currentDialogueIndex != 2 ? "NEXT" : "start", state: .normal) {
                     backgroundControl()
                 }
             }
@@ -67,8 +68,14 @@ struct History: View {
         switch currentDialogueIndex {
         case 1: self.currentImage = .history2
         case 2: self.currentImage = .history3
-        case 3: gameManager.hasSawHistory = true
-            gameManager.goToScene(.home)
+        case 3:
+            gameManager.hasSawHistory = true
+            if gameManager.shouldGoToGameAfterHistory {
+                gameManager.shouldGoToGameAfterHistory = false
+                gameManager.goToScene(.loading)
+            } else {
+                gameManager.goToScene(.home)
+            }
         default: break
         }
     }
@@ -77,7 +84,7 @@ struct History: View {
     }
 }
 
-#Preview("Dialogue 3") {
-    History(currentDialogueIndex: 2, currentImage: .history3)
+#Preview {
+    History()
         .environment(GameManager())
 }

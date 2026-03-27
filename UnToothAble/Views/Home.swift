@@ -25,7 +25,14 @@ struct Home: View {
                         .frame(width: 300, height: 200)
                     
                         CustomButton(label: " PLAY ", state: .normal, icon: .play) {
-                            gameManager.goToScene(.loading)
+                            
+                            if gameManager.shouldAlwaysShowHistory {
+                                gameManager.shouldGoToGameAfterHistory = true
+                                gameManager.goToScene(.history)
+                            } else {
+                                gameManager.goToScene(.loading)
+                            }
+                            
                         }
                         .padding(.top, 56)
                     
