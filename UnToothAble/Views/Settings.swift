@@ -7,7 +7,7 @@ struct Settings: View {
     @State private var showTutorial = false
     @State private var showCredits = false
 
-    @State private var showHistoryAlways = false
+    @State private var showHistoryAlways = UserDefaults.standard.bool(forKey: "showHistoryAlways")
     @AppStorage("musicEnabled") private var musicEnabled = true
     @AppStorage("hapticsEnabled") private var hapticsEnabled = true
 
@@ -27,7 +27,9 @@ struct Settings: View {
                     SettingsRow(
                         title: " ALWAYS SHOW STORY ",
                         isOn: $showHistoryAlways
-                    )
+                    ) { isOn in
+                        UserDefaults.standard.set(isOn, forKey: "showHistoryAlways")
+                    }
 
                     SettingsRow(
                         title: " MUSIC ",
