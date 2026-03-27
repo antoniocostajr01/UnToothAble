@@ -18,7 +18,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     var groundSystem = GroundSystem()
     private var cleanupSystem = CleanupSystem()
     var playerEntity: Entity?
-    
+    var skipNextFrame = false
     var gameManager: GameManager?
     
     private var currentScenarioSpeed: CGFloat = GameConstants.Physics.scenarioSpeed
@@ -137,10 +137,17 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
 
     override func update(_ currentTime: TimeInterval) {
         guard !isPaused, !isGameOver else { return }
+
+        if skipNextFrame {
+            skipNextFrame = false
+            lastUpdateTime = currentTime
+            return
+        }
+
         var deltaTime = currentTime - lastUpdateTime
         lastUpdateTime = currentTime
         
-        if deltaTime > 1 {
+        if deltaTime > 0.05 {
             deltaTime = 1.0 / 60.0
         }
         
