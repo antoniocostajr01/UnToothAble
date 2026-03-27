@@ -348,6 +348,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
 
     func restartGame() {
         isGameOver = false
+        isPaused = false
+        view?.isPaused = false
+        physicsWorld.speed = 1
         currentScenarioSpeed = GameConstants.Physics.scenarioSpeed
         currentPhase = 1
 

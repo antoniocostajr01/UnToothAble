@@ -82,9 +82,9 @@ struct PauseMenu: View {
 
                             Button {
                                 gameManager.resetReviveForNewRun()
-                                gameManager.gameScene.restartGame()
                                 showPauseMenu = false
                                 gameManager.goToScene(.home)
+                                gameManager.gameScene.restartGame()
                             } label: {
                                 Image(.iconHome)
                                     .scaledToFit()
