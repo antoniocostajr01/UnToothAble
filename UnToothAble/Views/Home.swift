@@ -12,50 +12,65 @@ struct Home: View {
     @AppStorage("hasSeenTutorial") private var hasSeenTutorial = false
     @State private var showTutorial = false
     @State private var showSettings = false
-
+    
     var body: some View {
         ZStack {
-            VStack {
-                HStack {
+            
+            HStack {
+                
+                VStack {
+                    Image(.logo)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 300, height: 200)
+                    
+                        CustomButton(label: " PLAY ", state: .normal, icon: .play) {
+                            
+                            if gameManager.shouldAlwaysShowHistory {
+                                gameManager.shouldGoToGameAfterHistory = true
+                                gameManager.goToScene(.history)
+                            } else {
+                                gameManager.goToScene(.loading)
+                            }
+                            
+                        }
+                        .padding(.top, 56)
+                    
                     Spacer()
-
-                    CustomIcon(state: .normal, icon: .settings) {
-                        withAnimation(.spring(response: 0.3, dampingFraction: 0.75)) {
-                            showSettings = true
+                    
+                    
+                }
+                .padding(.leading, 32)
+                
+                VStack {
+                    
+                    HStack {
+                        
+                        Spacer()
+                        
+                        CustomIcon(state: .normal, icon: .settings) {
+                            withAnimation(.spring(response: 0.3, dampingFraction: 0.75)) {
+                                showSettings = true
+                            }
+                        }
+                        
+                        CustomIcon(state: .normal, icon: .person) {
+                            GameCenterManager.shared.showLeaderboard()
+                        }
+                        .onAppear {
+                            GameCenterManager.shared.authenticate()
                         }
                     }
-
-                    CustomIcon(state: .normal, icon: .person) {
-                        GameCenterManager.shared.showLeaderboard()
-                    }
-                    .onAppear {
-                        GameCenterManager.shared.authenticate()
-                    }
+                    .padding(.trailing, 32)
+                    .padding(.top, 32)
+                    
+                    Spacer()
                 }
-                .padding(.trailing, 32)
-                .padding(.top, 32)
-
+                
                 Spacer()
             }
-
-            VStack {
-                Image(.logo)
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 400, height: 200)
-
-                VStack(spacing: 16) {
-                    CustomButton(label: " PLAY ", state: .normal, icon: .play) {
-                        gameManager.goToScene(.loading)
-                    }
-                  
-                    CustomButton(label: " SHOP ", state: .normal, icon: .tooth) {
-                        gameManager.goToScene(.shop)
-
-                    }
-                }
-            }
-
+            
+            
             if showSettings {
                 Color.black.opacity(0.45)
                     .ignoresSafeArea()
@@ -65,7 +80,7 @@ struct Home: View {
                         }
                     }
                     .transition(.opacity)
-
+                
                 Settings(isPresented: $showSettings)
                     .frame(width: 417, height: 265)
                     .transition(.scale(scale: 0.85).combined(with: .opacity))
@@ -74,7 +89,7 @@ struct Home: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(
-            Image(.store)
+            Image(.history3)
                 .resizable()
                 .scaledToFill()
         )

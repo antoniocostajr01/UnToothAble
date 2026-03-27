@@ -22,4 +22,5 @@ struct Shop: View {
 
 #Preview {
     Shop()
+    
 }

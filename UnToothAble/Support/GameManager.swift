@@ -19,6 +19,26 @@ class GameManager {
     var gameSpeed: CGFloat = 250
     
     var lastScore: Int = 0
+    
+    var hasSawHistory: Bool {
+        get {
+            UserDefaults.standard.bool(forKey: "hasSeenHistory")
+        }
+        set {
+            UserDefaults.standard.set(newValue, forKey: "hasSeenHistory")
+        }
+    }
+    
+    var shouldAlwaysShowHistory: Bool {
+        get {
+            UserDefaults.standard.bool(forKey: "showHistoryAlways")
+        }
+        set {
+            UserDefaults.standard.set(newValue, forKey: "showHistoryAlways")
+        }
+    }
+    
+    var shouldGoToGameAfterHistory = false
 
     var restartRun: () -> Void = {}
     var continueRun: () -> Void = {}
