@@ -7,29 +7,49 @@
 import SwiftUI
 
 struct CreditsView: View {
-    let onBack: () -> Void
+//    let onBack: () -> Void
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 24) {
-            Button {
-                onBack()
-            } label: {
-                Text("Back")
-                    .font(.system(size: 34, weight: .black, design: .rounded))
-                    .foregroundStyle(.black)
-            }
-
-            Text("Créditos")
-                .font(.system(size: 32, weight: .bold))
-                .foregroundStyle(.black)
-
-            Text("Desenvolvido por: Giovana, Sofia, Chico, Richard e Rafael")
-            .font(.system(size: 22))
-            .foregroundStyle(.black)
+        VStack(alignment: .leading) {
 
             Spacer()
+            
+
+            Text(" Created with ♥︎ by a team from \n the Apple Developer Academy poa ")
+                .font(.bangers(20))
+                .multilineTextAlignment(.leading)
+                .lineLimit(3)
+                .customStroke(color: .black, width: 1)
+
+            VStack(alignment: .leading){
+                Text(" Antonio costa    -   iOS Developer ")
+                    
+                Text(" Giovana Hossein  -   UX/UI DESIGNER ")
+                    
+                Text(" RAFAEL TONETO    -   iOS Developer ")
+                    
+                Text(" RICHARD FAGUNDES  -   iOS Developer ")
+                    
+                Text(" SOFIA LEITAO    -   iOS Developer ")
+                    
+            }
+            .font(.bangers(15))
+            .customStroke(color: .black, width: 0.5)
+
+            
+            Spacer()
         }
-        .padding(24)
-        .background(Color.white.ignoresSafeArea())
+        .frame(width: 400, height: 200)
+        .padding(.top, 24)
+        .background(
+            Image(.creditsBG)
+                .resizable()
+                .scaledToFill()
+        )
     }
+}
+
+#Preview {
+    CreditsView()
+    
 }
