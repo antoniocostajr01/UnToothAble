@@ -56,7 +56,11 @@ struct Tutorial: View {
                         if fromSettings {
                             onDismiss?()
                         } else {
-                            onSkip()
+                            if gameManager.hasSawHistory == false {
+                                onDismiss?()
+                            } else {
+                                onSkip()
+                            }
                         }
                     }
                     .padding(.trailing, 40) // Afasta o botão da borda direita

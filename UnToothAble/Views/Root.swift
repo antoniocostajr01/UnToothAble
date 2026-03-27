@@ -15,19 +15,21 @@ struct Root: View {
         ZStack {
 
             switch gameManager.currentScene {
+
             case .home:
                 Home()
-            case .game, .gameOver:
-                Game()
-            case .shop:
-                Shop()
-                
-            case .loading:
-                Loading()
-                
+
             case .history:
                 History()
-                
+
+            case .game, .gameOver:
+                Game()
+
+            case .shop:
+                Shop()
+
+            case .loading:
+                Loading()
             }
 
             if gameManager.currentScene == .gameOver {
@@ -38,8 +40,14 @@ struct Root: View {
                 )
             }
         }
-        .ignoresSafeArea()
         .environment(gameManager)
+        .onAppear {
+            if gameManager.hasSawHistory {
+                gameManager.currentScene = .home
+            } else {
+                gameManager.currentScene = .history
+            }
+        }
     }
 }
 
