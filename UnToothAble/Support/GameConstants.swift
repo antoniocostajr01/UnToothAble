@@ -12,7 +12,7 @@ enum GameConstants {
     // MARK: - Physics
     enum Physics {
         static let gravityY: CGFloat = -15
-        static let scenarioSpeed: CGFloat = 400
+        static let scenarioSpeed: CGFloat = 300
         static let speedIncrement: CGFloat = 100
     }
     

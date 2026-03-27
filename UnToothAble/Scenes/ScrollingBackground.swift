@@ -11,12 +11,10 @@ final class ScrollingBackground: SKNode {
     
     private var backgroundNodes: [SKSpriteNode] = []
     private var totalRecycles = 0
-    
-    // Background scrolls at 25% of obstacle speed for a parallax effect.
-    private let speedMultiplier: CGFloat = 0.25
+
+    private let speedMultiplier: CGFloat = 0.4
 
     var onLevelUp: (() -> Void)?
-    /// Fired once when `totalRecycles` reaches 4 (Scene5→6 transition), unlocking the boss.
     var onBossUnlocked: (() -> Void)?
     
     private let initialBGs = [
@@ -69,7 +67,6 @@ final class ScrollingBackground: SKNode {
                     break
                 }
                 
-                            
                 // Swap texture on the recycled panel as the level progresses.
                 if bg.name == "bg_0" {
                     switch totalRecycles {

@@ -87,7 +87,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         setupPhysicsGround()
         setupPlayer()
         warmUpPhysicsAndTextures()
-        spawnSystem.startSpawningAerialObstacles()
         gameHUD.addTo(scene: self)
         gameHUD.update(score: 0, bestScore: LocalScoreStore.shared.bestScore)
     }
@@ -255,8 +254,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         player.physicsBody?.velocity = .zero
         player.physicsBody?.applyImpulse(CGVector(dx: 0, dy: 80))
 
-        spawnSystem.startSpawningAerialObstacles()
-
         isGameOver = false
         lastUpdateTime = 0
         hapticsManager.prepare()
@@ -335,7 +332,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         spawnSystem.forceClearBoss(world: ecsWorld, scene: self)
 
         removeAction(forKey: "spawnObstacles")
-        removeAction(forKey: "spawnAerialObstacles")
         removeAction(forKey: "spawnBoss")
 
         let finalScore = scoreSystem.currentScore(world: ecsWorld)
@@ -374,7 +370,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         groundSystem.reset(in: size, worldNode: worldNode)
         setupPhysicsGround()
         setupPlayer()
-        spawnSystem.startSpawningAerialObstacles()
         gameHUD.update(score: 0, bestScore: LocalScoreStore.shared.bestScore)
         hapticsManager.resume()
     }

@@ -9,6 +9,12 @@ import SpriteKit
 
 final class SpawnSystem {
 
+    // MARK: - Aerial Obstacles
+    private var aerialSpawnAccumulator: TimeInterval = 0
+    private var currentAerialSpawnInterval: TimeInterval = 1.0
+    private var minAerialObstacleGap = 2.0
+    private var maxAerialObstacleGap = 4.0
+
     // MARK: - Ground obstacle spawn
     private var obstacleSpawnAccumulator: TimeInterval = 0
     private var currentObstacleSpawnInterval: TimeInterval = 2.0
@@ -48,12 +54,16 @@ final class SpawnSystem {
         currentObstacleSpawnInterval = 2.0
         bossTimer = 0
         isBossActive = false
+
+        aerialSpawnAccumulator = 0
+        currentAerialSpawnInterval = TimeInterval.random(in: 3.0...8.0)
     }
 
     func update(world: World, deltaTime: TimeInterval, isGameOver: Bool) {
         guard !isGameOver else { return }
 
         updateObstacleSpawn(world: world, deltaTime: deltaTime)
+        updateAerialObstacleSpawn(deltaTime: deltaTime)
         updateBossTimer(world: world, deltaTime: deltaTime, isGameOver: isGameOver)
     }
 
@@ -101,28 +111,21 @@ final class SpawnSystem {
     }
 
     // MARK: - Aerial Obstacles
+    private func updateAerialObstacleSpawn(deltaTime: TimeInterval) {
+        // Só processa o tempo de spawn se a fase permitir
+        guard currentPhase() >= 2 else { return }
 
-    func startSpawningAerialObstacles() {
-        spawnAerialObstacleLoop()
-    }
-
-    private func spawnAerialObstacleLoop() {
-        guard let scene = scene else { return }
-
-        let randomWait = TimeInterval.random(in: 3.0...8.0)
-        let wait = SKAction.wait(forDuration: randomWait)
-        let spawn = SKAction.run { [weak self] in
-            guard let self = self else { return }
-            self.spawnAerialObstacle()
-            self.spawnAerialObstacleLoop()
+        aerialSpawnAccumulator += deltaTime
+        if aerialSpawnAccumulator >= currentAerialSpawnInterval {
+            aerialSpawnAccumulator = 0
+            currentAerialSpawnInterval = TimeInterval.random(in: minAerialObstacleGap...maxAerialObstacleGap)
+            spawnAerialObstacle()
         }
-
-        scene.run(.sequence([wait, spawn]), withKey: "spawnAerialObstacles")
     }
 
     private func spawnAerialObstacle() {
         // Só aparece a partir da sala (fase 2)
-        guard currentPhase() >= 2 else { return }
+//        guard currentPhase() >= 2 else { return }
         guard let worldNode = worldNode, let scene = scene else { return }
 
         let aerialObstacle = SKSpriteNode(imageNamed: GameConstants.Assets.flyingObstacleFrame1)
