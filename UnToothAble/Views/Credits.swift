@@ -14,22 +14,46 @@ struct CreditsView: View {
             Button {
                 onBack()
             } label: {
-                Text("Back")
-                    .font(.system(size: 34, weight: .black, design: .rounded))
-                    .foregroundStyle(.black)
+                Image(.x)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 35, height: 35)
+                    .offset(x: 610)
             }
 
-            Text("Créditos")
-                .font(.system(size: 32, weight: .bold))
-                .foregroundStyle(.black)
+            Text("Created with 􀊵 by a team from the Apple Developer Academy poa")
+                .font(.bangers(19))
+                .customStroke(color: .black, width: 2)
 
-            Text("Desenvolvido por: Giovana, Sofia, Chico, Richard e Rafael")
-            .font(.system(size: 22))
-            .foregroundStyle(.black)
-
+            Text("""
+            Antonio costa    -   iOS Developer
+            Giovana Hossein  -   UX/UI DESIGNER
+            RAFAEL TONETO    -   iOS Developer
+            RICHARD FAGUNDES  -   iOS Developer
+            SOFIA LEITAO    -   iOS Developer
+            """)
+            .font(.bangers(19))
+            .customStroke(color: .black, width: 1)
+            
             Spacer()
         }
         .padding(24)
-        .background(Color.white.ignoresSafeArea())
+        .background(
+            
+            Image(.creditsBG)
+                .resizable()
+                .scaledToFill()
+        )
     }
+}
+
+#Preview {
+    CreditsView() {
+        print("")
+    }
+    .background(
+        Color.black
+            .ignoresSafeArea()
+        
+    )
 }
