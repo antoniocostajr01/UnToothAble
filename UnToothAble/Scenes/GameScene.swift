@@ -18,21 +18,19 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     var groundSystem = GroundSystem()
     private var cleanupSystem = CleanupSystem()
     var playerEntity: Entity?
-    
+    var skipNextFrame = false
     var gameManager: GameManager?
     
     private var currentScenarioSpeed: CGFloat = GameConstants.Physics.scenarioSpeed
     
-    // Nós da cena
     let worldNode = SKNode()
     let player = SKSpriteNode(imageNamed: GameConstants.Assets.playerFrame1)
     private let background = ScrollingBackground()
-    
-    // Estado
+
     var isGameOver = false
     var lastUpdateTime: TimeInterval = 0
     var currentPhase: Int = 1
-    
+
     private weak var lastHitObstacleNode: SKNode?
     var fixedPlayerX: CGFloat = 0
     private var hasPerformedInitialSetup = false
@@ -42,12 +40,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     // MARK: - Haptics
     private let hapticsManager = HapticsManager()
 
-    // HUD
     private let gameHUD = GameHUD()
-           
-    var onGameOver: ((Int) -> Void)?
 
-    // MARK: - Score entity (criada uma vez para o ECS)
+    var onGameOver: ((Int) -> Void)?
     private var scoreEntity: Entity?
 
     override func didMove(to view: SKView) {
@@ -92,7 +87,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         setupPhysicsGround()
         setupPlayer()
         warmUpPhysicsAndTextures()
-        spawnSystem.startSpawningAerialObstacles()
         gameHUD.addTo(scene: self)
         gameHUD.update(score: 0, bestScore: LocalScoreStore.shared.bestScore)
     }
@@ -143,10 +137,17 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
 
     override func update(_ currentTime: TimeInterval) {
         guard !isPaused, !isGameOver else { return }
+
+        if skipNextFrame {
+            skipNextFrame = false
+            lastUpdateTime = currentTime
+            return
+        }
+
         var deltaTime = currentTime - lastUpdateTime
         lastUpdateTime = currentTime
         
-        if deltaTime > 1 {
+        if deltaTime > 0.05 {
             deltaTime = 1.0 / 60.0
         }
         
@@ -154,7 +155,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         // 1. Sync SpriteKit → ECS
         syncPlayerPositionFromNode()
-        
         // 2. ECS Systems
         scrollSystem.update(world: ecsWorld, deltaTime: deltaTime, scenarioSpeed: currentSpeed)
         jetPackSystem.update(world: ecsWorld, deltaTime: deltaTime)
@@ -162,18 +162,14 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         scoreSystem.update(world: ecsWorld, deltaTime: deltaTime)
         spawnSystem.update(world: ecsWorld, deltaTime: deltaTime, isGameOver: isGameOver)
         cleanupSystem.update(world: ecsWorld)
-        
         // 3. Sync ECS → SpriteKit
         syncPositionToNodes()
-        
-        // 4. Visual updates
+        // 4. Visuals
         fuelBarSystem.update(world: ecsWorld, playerEntity: playerEntity)
         groundSystem.update(deltaTime: deltaTime, currentSpeed: currentSpeed)
         background.update(deltaTime: deltaTime, scenarioSpeed: currentSpeed)
-
         // 5. Haptics
         updateHapticsFromECS(deltaTime: deltaTime)
-
         // 6. Player constraints
         player.position.x = fixedPlayerX
 
@@ -238,16 +234,25 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         }
     }
 
+    private func removeAllAerialObstacles() {
+        worldNode.children
+            .filter { $0.name == "aerialObstacle" }
+            .forEach {
+                $0.removeAllActions()
+                $0.removeFromParent()
+            }
+    }
+
     // MARK: - Continue / Game Over / Restart
 
     func continueRun() {
         removeAllObstaclesAheadOfPlayer()
+        removeAllAerialObstacles()
         lastHitObstacleNode = nil
 
         spawnSystem.reset()
         hapticsManager.resume()
 
-        // Limpa fada e projéteis via SpawnSystem (busca na scene, não no worldNode)
         spawnSystem.forceClearBoss(world: ecsWorld, scene: self)
 
         player.physicsBody?.categoryBitMask = GameConstants.PhysicsCategory.player
@@ -255,8 +260,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         player.position.x = fixedPlayerX
         player.physicsBody?.velocity = .zero
         player.physicsBody?.applyImpulse(CGVector(dx: 0, dy: 80))
-
-        spawnSystem.startSpawningAerialObstacles()
 
         isGameOver = false
         lastUpdateTime = 0
@@ -336,7 +339,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         spawnSystem.forceClearBoss(world: ecsWorld, scene: self)
 
         removeAction(forKey: "spawnObstacles")
-        removeAction(forKey: "spawnAerialObstacles")
         removeAction(forKey: "spawnBoss")
 
         let finalScore = scoreSystem.currentScore(world: ecsWorld)
@@ -365,7 +367,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             currentPhase: { [weak self] in self?.currentPhase ?? 1 },
             scenarioSpeed: { [weak self] in self?.currentScenarioSpeed ?? GameConstants.Physics.scenarioSpeed }
         )
-        // bossUnlocked resetado junto com o spawnSystem (default = false)
 
         childNode(withName: "physicsGround")?.removeFromParent()
 
@@ -376,7 +377,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         groundSystem.reset(in: size, worldNode: worldNode)
         setupPhysicsGround()
         setupPlayer()
-        spawnSystem.startSpawningAerialObstacles()
         gameHUD.update(score: 0, bestScore: LocalScoreStore.shared.bestScore)
         hapticsManager.resume()
     }
