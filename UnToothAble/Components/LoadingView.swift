@@ -12,7 +12,8 @@ struct LoadingView: View {
     @State private var dotCount = 0
     
     var body: some View {
-        Text("Loading\(dots)")
+        Text(" Loading\(dots) ")
+            .foregroundStyle(.white)
             .font(.bangers(32))
             .customStroke(color: .darkBlueStroke, width: 2)
             .task {
