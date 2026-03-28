@@ -63,7 +63,7 @@ struct GameOver: View {
                                 icon: Optional.none,
                                 width: 140
                             ) {
-                                showRewardedAndContinue()
+                                continueWithoutAd()
                             }
                             .overlay(alignment: .topTrailing) {
                                 Image("rewardTv")
@@ -199,5 +199,16 @@ struct GameOver: View {
             return topViewController(base: presented)
         }
         return base
+    }
+    
+    
+    //FUNC CREATED TO CONTINUE GAME WITHOUT AD, IT MIGHT BE REMOVED ON NEXT VERSION
+    private func continueWithoutAd() {
+        gameManager.markReviveAsUsed()
+        gameManager.isShowingRewardedAd = false
+        gameManager.gameScene.resumeHaptics()
+        AudioManager.shared.resumeMusic()
+        onContinue()
+        gameManager.goToScene(.game)
     }
 }
