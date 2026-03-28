@@ -8,7 +8,6 @@
 import Foundation
 import CoreGraphics
 
-/// System that applies velocity to position over time. Call from your game loop (e.g. GameScene update).
 final class MovementSystem {
 
     func update(world: World, deltaTime: TimeInterval) {
