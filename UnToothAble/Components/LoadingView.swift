@@ -13,6 +13,7 @@ struct LoadingView: View {
     
     var body: some View {
         Text(" Loading\(dots) ")
+            .foregroundStyle(.white)
             .font(.bangers(32))
             .customStroke(color: .darkBlueStroke, width: 2)
             .task {
